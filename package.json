@@ -1,0 +1,23 @@
+{
+  "name": "aog_manager",
+  "productName": "AOG Manager",
+  "version": "1.0.0",
+  "description": "church member manager",
+  "license": "MIT",
+  "author": "Tsako Ubise",
+  "type": "commonjs",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^44.4.1"
+  },
+  "devDependencies": {
+    "electron-builder": "^26.15.3"
+  },
+  "allowScripts": {
+    "electron-winstaller@5.4.0": true
+  }
+  
+}
