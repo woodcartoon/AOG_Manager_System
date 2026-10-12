@@ -1,0 +1,549 @@
+/* ==========================================================================
+   AOG Manager — login
+   Palette: deep chapel navy, aged brass, vellum paper, muted olive.
+   ========================================================================== */
+
+:root {
+    --navy:        #16203c;
+    --navy-deep:   #0e1629;
+    --brass:       #c39a4a;
+    --brass-soft:  #e3c489;
+    --vellum:      #f6f2ea;
+    --paper:       #fffdf9;
+    --ink:         #22283a;
+    --ink-muted:   #61687e;
+    --olive:       #3f6b5c;
+    --danger:      #a8412f;
+    --line:        rgba(34, 40, 58, 0.14);
+
+    --radius:      4px;
+    --ease:        cubic-bezier(0.22, 0.61, 0.36, 1);
+    --speed:       340ms;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body { height: 100%; }
+
+body {
+    margin: 0;
+    font-family: "Karla", "Segoe UI", system-ui, sans-serif;
+    font-size: 16px;
+    line-height: 1.55;
+    color: var(--ink);
+    background: var(--vellum);
+    -webkit-font-smoothing: antialiased;
+}
+
+/* ---------- Page shell ---------------------------------------------------- */
+
+.page {
+    min-height: 100%;
+    display: grid;
+    grid-template-columns: minmax(320px, 42%) 1fr;
+}
+
+/* ---------- Left identity panel ------------------------------------------ */
+
+.brand {
+    position: relative;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    padding: 3rem 3rem 3.5rem;
+    color: var(--vellum);
+    background:
+        radial-gradient(120% 80% at 20% 0%, #1d2a4e 0%, transparent 60%),
+        linear-gradient(170deg, var(--navy) 0%, var(--navy-deep) 100%);
+}
+
+/* A chapel window, built from a rounded-top block and a stained-glass wash. */
+.arch {
+    position: absolute;
+    top: 1%;
+    left: 50%;
+    width: min(360px, 62%);
+    aspect-ratio: 1 / 1.7;
+    transform: translateX(-50%);
+    border-radius: 50% 50% 0 0 / 38% 38% 0 0;
+    border: 1px solid rgba(227, 196, 137, 0.35);
+    border-bottom: none;
+    overflow: hidden;
+}
+
+.arch__glass {
+    position: absolute;
+    inset: 0;
+    background:
+        conic-gradient(from 210deg at 50% 32%,
+            rgba(195, 154, 74, 0.34) 0deg,
+            rgba(63, 107, 92, 0.30) 90deg,
+            rgba(122, 70, 92, 0.28) 180deg,
+            rgba(195, 154, 74, 0.34) 300deg);
+    filter: blur(2px);
+    opacity: 0;
+    transition: opacity 1200ms var(--ease) 260ms;
+}
+
+/* The one non-user-triggered moment on the page: light crossing the glass. */
+.arch__sweep {
+    position: absolute;
+    inset: -30% -60%;
+    background: linear-gradient(115deg,
+        transparent 38%,
+        rgba(255, 248, 232, 0.5) 50%,
+        transparent 62%);
+    transform: translateX(-120%);
+}
+
+.brand__mark {
+    position: relative;
+    margin: 0;
+    font-family: "Newsreader", Georgia, serif;
+    font-size: clamp(2rem, 4vw, 2.9rem);
+    font-weight: 500;
+    letter-spacing: -0.015em;
+    line-height: 1.05;
+}
+
+.brand__mark span {
+    display: block;
+    color: var(--brass-soft);
+}
+
+.brand__note {
+    position: relative;
+    margin: 0;
+    max-width: 30ch;
+    color: rgba(246, 242, 234, 0.72);
+    font-size: 0.95rem;
+}
+
+/* ---------- Right form panel --------------------------------------------- */
+
+.panel {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2rem;
+    padding: clamp(2rem, 6vw, 5rem);
+    background: var(--paper);
+}
+
+.panel__head,
+.form,
+.panel__foot { width: min(380px, 100%); }
+
+.panel__head { margin: 0; }
+
+.panel__eyebrow {
+    margin: 0 0 0.35rem;
+    color: var(--olive);
+    font-size: 0.85rem;
+    font-weight: 600;
+    letter-spacing: 0.01em;
+}
+
+.panel__head h1 {
+    margin: 0 0 0.5rem;
+    font-family: "Newsreader", Georgia, serif;
+    font-size: clamp(1.9rem, 3.4vw, 2.5rem);
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    line-height: 1.1;
+}
+
+.panel__sub {
+    margin: 0;
+    max-width: 38ch;
+    color: var(--ink-muted);
+    font-size: 0.95rem;
+}
+
+.panel__foot {
+    margin: 0;
+    color: var(--ink-muted);
+    font-size: 0.85rem;
+}
+
+/* ---------- Fields -------------------------------------------------------- */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: 1.1rem;
+}
+
+.field { position: relative; }
+
+.field input {
+    width: 100%;
+    padding: 1.45rem 0.9rem 0.6rem;
+    font: inherit;
+    color: var(--ink);
+    background: var(--vellum);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    transition: border-color 200ms var(--ease),
+                background-color 200ms var(--ease),
+                box-shadow 200ms var(--ease);
+}
+
+.field--password input { padding-right: 3rem; }
+
+.field label {
+    position: absolute;
+    top: 0.95rem;
+    left: 0.95rem;
+    color: var(--ink-muted);
+    font-size: 1rem;
+    pointer-events: none;
+    transform-origin: left top;
+    transition: transform 200ms var(--ease), color 200ms var(--ease);
+}
+
+/* Label rises as soon as the field holds something or takes focus. */
+.field input:focus + label,
+.field input:not(:placeholder-shown) + label {
+    transform: translateY(-0.65rem) scale(0.76);
+    color: var(--olive);
+}
+
+.field input:focus {
+    outline: none;
+    background: var(--paper);
+    border-color: var(--olive);
+    box-shadow: 0 0 0 3px rgba(63, 107, 92, 0.16);
+}
+
+.field.is-invalid input {
+    border-color: var(--danger);
+    box-shadow: 0 0 0 3px rgba(168, 65, 47, 0.14);
+}
+
+.field.is-invalid input:focus + label,
+.field.is-invalid input:not(:placeholder-shown) + label { color: var(--danger); }
+
+.shake { animation: shake 420ms var(--ease); }
+
+@keyframes shake {
+    0%, 100% { transform: translateX(0); }
+    20%      { transform: translateX(-6px); }
+    40%      { transform: translateX(5px); }
+    60%      { transform: translateX(-3px); }
+    80%      { transform: translateX(2px); }
+}
+
+.reveal {
+    position: absolute;
+    top: 50%;
+    right: 0.5rem;
+    width: 2.25rem;
+    height: 2.25rem;
+    display: grid;
+    place-items: center;
+    padding: 0;
+    color: var(--ink-muted);
+    background: none;
+    border: none;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transform: translateY(-50%);
+    transition: color 200ms var(--ease), background-color 200ms var(--ease);
+}
+
+.reveal:hover { color: var(--ink); background: var(--vellum); }
+
+.reveal svg {
+    width: 20px;
+    height: 20px;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.5;
+    stroke-linecap: round;
+}
+
+.reveal__slash {
+    stroke-dasharray: 23;
+    stroke-dashoffset: 23;
+    transition: stroke-dashoffset 260ms var(--ease);
+}
+
+.reveal[aria-pressed="true"] .reveal__slash { stroke-dashoffset: 0; }
+
+.hint,
+.form__error {
+    margin: 0.45rem 0 0;
+    font-size: 0.85rem;
+    color: var(--ink-muted);
+}
+
+.form__error {
+    color: var(--danger);
+    margin: -0.35rem 0 0;
+}
+
+.hint[hidden],
+.form__error[hidden] { display: none; }
+
+/* ---------- Buttons ------------------------------------------------------- */
+
+.btn {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.6rem;
+    padding: 0.85rem 1.25rem;
+    font: inherit;
+    font-weight: 600;
+    text-align: center;
+    text-decoration: none;
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    cursor: pointer;
+    transition: transform 160ms var(--ease),
+                background-color 220ms var(--ease),
+                color 220ms var(--ease),
+                border-color 220ms var(--ease);
+}
+
+.btn:active { transform: translateY(1px); }
+
+.btn--primary {
+    color: var(--vellum);
+    background: var(--navy);
+}
+
+.btn--primary:hover { background: #1f2c52; }
+
+.btn--ghost {
+    color: var(--ink);
+    background: transparent;
+    border-color: var(--line);
+}
+
+.btn--ghost:hover {
+    color: var(--navy);
+    border-color: var(--brass);
+    background: rgba(195, 154, 74, 0.08);
+}
+
+.btn:focus-visible {
+    outline: 2px solid var(--olive);
+    outline-offset: 3px;
+}
+
+/* Loading state: label steps aside, spinner takes over. */
+.btn__spinner {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(246, 242, 234, 0.35);
+    border-top-color: var(--vellum);
+    border-radius: 50%;
+    display: none;
+}
+
+.btn.is-loading { pointer-events: none; }
+.btn.is-loading .btn__label { opacity: 0.65; }
+.btn.is-loading .btn__spinner {
+    display: block;
+    animation: spin 700ms linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+/* ---------- Entrance choreography ---------------------------------------- */
+
+.brand__mark,
+.brand__note,
+.panel__head,
+.form > *,
+.panel__foot {
+    opacity: 0;
+    transform: translateY(12px);
+    transition: opacity 520ms var(--ease), transform 520ms var(--ease);
+}
+
+.is-ready .brand__mark,
+.is-ready .brand__note,
+.is-ready .panel__head,
+.is-ready .form > *,
+.is-ready .panel__foot {
+    opacity: 1;
+    transform: none;
+}
+
+.is-ready .arch__glass { opacity: 1; }
+
+.is-ready .arch__sweep {
+    animation: sweep 1700ms var(--ease) 420ms both;
+}
+
+@keyframes sweep {
+    to { transform: translateX(120%); }
+}
+
+/* Leaving the page (e.g. to the admin portal) */
+.is-leaving .page {
+    opacity: 0;
+    transform: translateY(-8px);
+    transition: opacity 260ms var(--ease), transform 260ms var(--ease);
+}
+
+/* ---------- Responsive ---------------------------------------------------- */
+
+@media (max-width: 860px) {
+    .page { grid-template-columns: 1fr; }
+
+    .brand {
+        min-height: 230px;
+        padding: 2.5rem 1.75rem 2rem;
+    }
+
+    .arch {
+        top: -14%;
+        width: 220px;
+    }
+
+    .panel { padding: 2.5rem 1.75rem 3rem; }
+}
+
+/* ---------- Administrator portal ------------------------------------------
+   Same system, different room: the identity panel moves to the right, the
+   glass cools to plum and brass, and accents shift off the manager's olive.
+   -------------------------------------------------------------------------- */
+
+.admin .page { grid-template-columns: 1fr minmax(320px, 42%); }
+
+.admin .brand { order: 2; }
+
+.admin .brand {
+    background:
+        radial-gradient(120% 80% at 80% 0%, #2a2140 0%, transparent 60%),
+        linear-gradient(190deg, #1d1734 0%, #0d0a1c 100%);
+}
+
+.admin .arch__glass {
+    background:
+        conic-gradient(from 150deg at 50% 32%,
+            rgba(122, 70, 92, 0.38) 0deg,
+            rgba(195, 154, 74, 0.30) 110deg,
+            rgba(58, 62, 120, 0.32) 220deg,
+            rgba(122, 70, 92, 0.38) 320deg);
+}
+
+.admin .panel__eyebrow { color: #7a465c; }
+
+.admin .field input:focus {
+    border-color: #7a465c;
+    box-shadow: 0 0 0 3px rgba(122, 70, 92, 0.16);
+}
+
+.admin .field input:focus + label,
+.admin .field input:not(:placeholder-shown) + label { color: #7a465c; }
+
+.admin .field.is-invalid input:focus + label,
+.admin .field.is-invalid input:not(:placeholder-shown) + label { color: var(--danger); }
+
+.admin .btn--primary { background: #241c42; }
+.admin .btn--primary:hover { background: #2f2554; }
+
+.admin .btn:focus-visible { outline-color: #7a465c; }
+
+@media (max-width: 860px) {
+    .admin .page { grid-template-columns: 1fr; }
+    .admin .brand { order: 0; }
+    .admin .arch { left: 70%; }
+}
+
+/* ---------- Reduced motion ------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+        animation-duration: 0.01ms !important;
+        animation-iteration-count: 1 !important;
+        transition-duration: 0.01ms !important;
+    }
+
+    .brand__mark,
+    .brand__note,
+    .panel__head,
+    .form > *,
+    .panel__foot {
+        opacity: 1;
+        transform: none;
+    }
+
+    .arch__glass { opacity: 1; }
+    .arch__sweep { display: none; }
+}
+
+/* ---------- Theme modes -------------------------------------------------- */
+
+.theme-toggle {
+    position: fixed;
+    top: 1rem;
+    right: 1rem;
+    z-index: 20;
+    padding: 0.45rem 0.7rem;
+    font: inherit;
+    font-size: 0.78rem;
+    color: var(--ink);
+    background: var(--paper);
+    border: 1px solid var(--line);
+    border-radius: var(--radius);
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(14, 22, 41, 0.08);
+    transition: color 180ms var(--ease), background-color 180ms var(--ease), border-color 180ms var(--ease);
+}
+
+.theme-toggle:hover { border-color: var(--olive); }
+
+[data-theme="dark"] {
+    --navy:        #c8d5e6;
+    --navy-deep:   #0c1422;
+    --brass:       #d9b36a;
+    --brass-soft:  #f0d49a;
+    --vellum:      #182331;
+    --paper:       #101923;
+    --ink:         #e7edf4;
+    --ink-muted:   #a9b5c4;
+    --olive:       #83b69c;
+    --danger:      #ed927e;
+    --line:        rgba(231, 237, 244, 0.16);
+}
+
+[data-theme="night"] {
+    --navy:        #d5c7ad;
+    --navy-deep:   #120d0c;
+    --brass:       #d9a85f;
+    --brass-soft:  #f2d19b;
+    --vellum:      #211817;
+    --paper:       #160f10;
+    --ink:         #f0e6d6;
+    --ink-muted:   #bbaea0;
+    --olive:       #a9b887;
+    --danger:      #ed927e;
+    --line:        rgba(240, 230, 214, 0.17);
+}
+
+[data-theme="dark"] body,
+[data-theme="night"] body { transition: color 220ms var(--ease), background-color 220ms var(--ease); }
+
+[data-theme="dark"] .brand {
+    background: radial-gradient(120% 80% at 20% 0%, #243752 0%, transparent 60%), linear-gradient(170deg, #17283e 0%, #0a111c 100%);
+}
+
+[data-theme="night"] .brand {
+    background: radial-gradient(120% 80% at 20% 0%, #3a261c 0%, transparent 60%), linear-gradient(170deg, #251513 0%, #100a0a 100%);
+}
+
+[data-theme="dark"] .admin .brand,
+[data-theme="night"] .admin .brand { background: linear-gradient(190deg, #211a32 0%, #0c0914 100%); }
+
+@media (max-width: 860px) {
+    .theme-toggle { position: absolute; }
+}

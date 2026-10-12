@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="Content-Security-Policy"
+          content="default-src 'self';
+                   script-src 'self';
+                   style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+                   font-src 'self' https://fonts.gstatic.com;
+                   img-src 'self' data:;
+                   connect-src 'self'">
+    <title>Members · AOG Manager</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Karla:wght@400;500;600&family=Newsreader:opsz,wght@6..72,400;6..72,500&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="dashboard.css">
+</head>
+<body>
+    <script src="../theme.js"></script>
+    <div class="app">
+
+        <header class="topbar">
+            <div class="topbar__brand">
+                <span class="topbar__mark">AOG</span><span class="topbar__markSub">Manager</span>
+            </div>
+
+            <div class="topbar__search">
+                <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><line x1="20" y1="20" x2="15.3" y2="15.3"/></svg>
+                <input type="search" id="searchInput" placeholder="Search members by name" aria-label="Search members">
+            </div>
+
+            <div class="topbar__actions">
+                <button type="button" class="btn btn--primary" id="addMemberBtn">Add member</button>
+                <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">Light mode</button>
+                <a href="login.html" class="topbar__logout" id="logoutBtn" data-transition>Sign out</a>
+            </div>
+        </header>
+
+        <main class="dashboard">
+
+            <!-- ================= Stats ================= -->
+            <section class="stats" aria-label="Attendance overview">
+                <div class="stats__row">
+                    <div class="stat">
+                        <p class="stat__value" id="statTotal">0</p>
+                        <p class="stat__label">Members on the roll</p>
+                    </div>
+                    <div class="stat">
+                        <p class="stat__value" id="statActive">0</p>
+                        <p class="stat__label">Active members</p>
+                    </div>
+                    <div class="stat">
+                        <p class="stat__value" id="statCheckedIn">0</p>
+                        <p class="stat__label">Signed in this service</p>
+                    </div>
+                </div>
+                <button type="button" class="stats__reset" id="newServiceBtn">Start next service</button>
+            </section>
+
+            <!-- ================= Serving teams ================= -->
+            <section class="teams" aria-label="Serving teams">
+                <h2>Serving teams</h2>
+                <div class="teams__row" id="teamFilters"></div>
+            </section>
+
+            <!-- ================= Members ================= -->
+            <section class="members" aria-label="Members">
+                <div class="members__head">
+                    <h2>Members</h2>
+                    <p class="members__count" id="membersCount"></p>
+                </div>
+
+                <div class="members__list" id="membersList" role="list"></div>
+
+                <p class="members__empty" id="membersEmpty" hidden>
+                    No one matches that search or team. Try a different name, or clear the filter.
+                </p>
+            </section>
+
+        </main>
+    </div>
+
+    <!-- ================= Member drawer (view / edit / add) ================= -->
+    <div class="drawer-overlay" id="drawerOverlay" hidden>
+        <aside class="drawer" id="memberDrawer" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+
+            <header class="drawer__head">
+                <h2 id="drawerTitle">Member</h2>
+                <button type="button" class="drawer__close" id="drawerClose" aria-label="Close">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="5" x2="5" y2="19"/></svg>
+                </button>
+            </header>
+
+            <div class="drawer__avatar" id="drawerAvatar" aria-hidden="true"></div>
+
+            <form class="drawer__form" id="memberForm" novalidate>
+
+                <div class="drawer__grid">
+                    <div class="field">
+                        <input type="text" id="fieldFirstName" placeholder=" " autocomplete="off" disabled required>
+                        <label for="fieldFirstName">First name</label>
+                    </div>
+                    <div class="field">
+                        <input type="text" id="fieldLastName" placeholder=" " autocomplete="off" disabled required>
+                        <label for="fieldLastName">Last name</label>
+                    </div>
+                </div>
+
+                <div class="field field--select">
+                    <select id="fieldRole" disabled></select>
+                    <label for="fieldRole">Serving team</label>
+                </div>
+
+                <div class="drawer__grid">
+                    <div class="field">
+                        <input type="tel" id="fieldPhone" placeholder=" " autocomplete="off" disabled>
+                        <label for="fieldPhone">Phone</label>
+                    </div>
+                    <div class="field">
+                        <input type="date" id="fieldJoinDate" placeholder=" " disabled>
+                        <label for="fieldJoinDate">Member since</label>
+                    </div>
+                </div>
+
+                <div class="field">
+                    <input type="email" id="fieldEmail" placeholder=" " autocomplete="off" disabled>
+                    <label for="fieldEmail">Email</label>
+                </div>
+
+                <div class="field">
+                    <input type="text" id="fieldAddress" placeholder=" " autocomplete="street-address" disabled>
+                    <label for="fieldAddress">Address</label>
+                </div>
+
+                <label class="toggle">
+                    <input type="checkbox" id="fieldActive" disabled>
+                    <span class="toggle__track"><span class="toggle__thumb"></span></span>
+                    <span class="toggle__label">Active member</span>
+                </label>
+
+                <label class="toggle toggle--service">
+                    <input type="checkbox" id="fieldCheckedIn">
+                    <span class="toggle__track"><span class="toggle__thumb"></span></span>
+                    <span class="toggle__label">Signed in this service</span>
+                </label>
+
+                <dl class="drawer__attendance" id="attendanceBlock">
+                    <div>
+                        <dt>Services attended</dt>
+                        <dd id="fieldAttendanceCount">0</dd>
+                    </div>
+                    <div>
+                        <dt>Last attended</dt>
+                        <dd id="fieldLastAttended">—</dd>
+                    </div>
+                </dl>
+
+                <p class="drawer__error" id="drawerError" role="alert" hidden></p>
+
+                <div class="drawer__actions">
+                    <button type="button" class="btn btn--ghost" id="editBtn">Edit details</button>
+                    <button type="submit" class="btn btn--primary" id="saveBtn" hidden>Save</button>
+                    <button type="button" class="btn btn--ghost" id="cancelBtn" hidden>Cancel</button>
+                    <button type="button" class="btn btn--danger" id="deleteBtn">Remove member</button>
+                </div>
+            </form>
+        </aside>
+    </div>
+
+    <script src="../dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,2 @@
+ALTER TABLE members
+    ADD COLUMN address VARCHAR(255) NULL;
