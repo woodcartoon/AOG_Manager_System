@@ -16,7 +16,8 @@
         { id: "usher",      label: "Usher",        varName: "--role-usher" },
         { id: "worshiper",  label: "Worshiper",    varName: "--role-worshiper" },
         { id: "band",       label: "Band",         varName: "--role-band" },
-        { id: "sound",      label: "Sound crew",   varName: "--role-sound" }
+        { id: "sound",      label: "Sound crew",   varName: "--role-sound" },
+         { id: "member",      label: "Member",   varName: "--role-member" }
     ];
 
     function roleLabel(id) {

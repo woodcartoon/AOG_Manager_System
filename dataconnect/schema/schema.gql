@@ -1,13 +1,17 @@
 type Organization @table {
   name: String!
-  createdAt: Timestamp!
+  createdAt: Timestamp! @default(expr: "request.time")
 }
 
-# Maps Firebase Auth UIDs to Organizations for multi-tenant access control
-type UserOrganization @table(key: ["uid", "org"]) {
+# Maps Firebase Auth UIDs to organizations for multi-tenant access control
+type AuthUser @table(key: "uid") {
   uid: String! # Firebase Auth UID
+}
+
+type UserOrganization @table(key: ["user", "org"]) {
+  user: AuthUser!
   org: Organization!
-  role: String! # e.g., "ADMIN", "TEAM_LEAD", "MEMBER"
+  role: String! @index # e.g., "ADMIN", "TEAM_LEAD", "MEMBER"
 }
 
 type ServingTeam @table {
@@ -25,7 +29,7 @@ type Member @table {
   joinDate: Date
   active: Boolean!
   servingTeam: ServingTeam
-  servicesAttendedCount: Int64!
+  servicesAttendedCount: Int64! @default(value: 0)
   lastAttendedDate: Timestamp
 }
 
