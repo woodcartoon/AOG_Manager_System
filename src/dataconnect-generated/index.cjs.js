@@ -1,17 +1,25 @@
-const { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMutation, validateArgs, makeMemoryCacheProvider } = require('firebase/data-connect');
+const { queryRef, executeQuery, validateArgsWithOptions, mutationRef, executeMutation, validateArgs } = require('firebase/data-connect');
 
 const connectorConfig = {
-  connector: 'example',
+  connector: 'aog-manager',
   service: 'aog-data-base-service',
   location: 'us-east4'
 };
 exports.connectorConfig = connectorConfig;
-const dataConnectSettings = {
-  cacheSettings: {
-    cacheProvider: makeMemoryCacheProvider()
-  }
-};
-exports.dataConnectSettings = dataConnectSettings;
+
+const bootstrapOrganizationRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'BootstrapOrganization', inputVars);
+}
+bootstrapOrganizationRef.operationName = 'BootstrapOrganization';
+exports.bootstrapOrganizationRef = bootstrapOrganizationRef;
+
+exports.bootstrapOrganization = function bootstrapOrganization(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(bootstrapOrganizationRef(dcInstance, inputVars));
+}
+;
 
 const createMemberRef = (dcOrVars, vars) => {
   const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);

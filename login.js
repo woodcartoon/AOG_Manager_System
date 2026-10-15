@@ -9,7 +9,7 @@
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
 
     var form       = document.getElementById("loginForm");
-    var username   = document.getElementById("username");
+    var email      = document.getElementById("email");
     var password   = document.getElementById("password");
     var formError  = document.getElementById("formError");
     var capsHint   = document.getElementById("capsHint");
@@ -17,10 +17,6 @@
     var submitBtn  = document.getElementById("submitBtn");
 
     /* ---- Entrance: one staggered reveal, then the page settles ---------- */
-    const AdminPortalusername = "AOGadmin";
-    const AdminPortalpassword = "JESUSISKING";
-    
-    
     function stageEntrance() {
         if (!reduceMotion) {
             var steps = [].slice.call(
@@ -71,7 +67,7 @@
         }
     }
 
-    [username, password].forEach(function (input) {
+    [email, password].forEach(function (input) {
         input.addEventListener("input", function () { clearError(input); });
     });
 
@@ -95,10 +91,9 @@
 
     /* ---- Submit ---------------------------------------------------------- */
 
-    var isAdminPortal = document.body.classList.contains("admin");
-
-    form.addEventListener("submit", function (e) {
-        var missing = [username, password].filter(function (input) {
+    form.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        var missing = [email, password].filter(function (input) {
             return input.value.trim() === "";
         });
 
@@ -106,8 +101,8 @@
             e.preventDefault();
             missing.forEach(markInvalid);
             formError.textContent = missing.length === 2
-                ? "Enter your username and password to continue."
-                : "Enter your " + (missing[0] === username ? "username" : "password") + " to continue.";
+                ? "Enter your email address and password to continue."
+                : "Enter your " + (missing[0] === email ? "email address" : "password") + " to continue.";
             formError.hidden = false;
             missing[0].focus();
             return;
@@ -116,38 +111,31 @@
         // Let the button show work in progress while the request runs.
         setLoading(true);
 
-        // Inside Electron, go through the preload bridge instead of posting the
-        // form (a file:// page has nowhere to post to).
-        if (window.aog && typeof window.aog.login === "function") {
-            e.preventDefault();
-
-            window.aog.login({
-                username: username.value.trim(),
-                password: password.value,
-                portal: isAdminPortal ? "admin" : "manager"
-            }).then(function (result) {
-                if (result && result.ok) {
-                    var destination = result.role === "admin" ? "Admin.html" : "index.html";
-                    document.body.classList.add("is-leaving");
-                    window.setTimeout(function () {
-                        window.location.href = destination;
-                    }, reduceMotion ? 0 : 240);
-                    return;
-                }
-
-                setLoading(false);
-                markInvalid(password);
-                formError.textContent = (result && result.message) ||
-                    "That username and password don't match. Try again.";
-                formError.hidden = false;
-                password.select();
-            }).catch(function () {
-                setLoading(false);
-                formError.textContent = "Something went wrong signing in. Try again.";
-                formError.hidden = false;
-            });
+        try {
+            await window.AogFirebase.signIn(email.value.trim(), password.value);
+            document.body.classList.add("is-leaving");
+            window.setTimeout(function () {
+                window.location.href = "index.html";
+            }, reduceMotion ? 0 : 240);
+        } catch (error) {
+            setLoading(false);
+            markInvalid(password);
+            formError.textContent = getSignInError(error);
+            formError.hidden = false;
+            password.select();
         }
     });
+
+    function getSignInError(error) {
+        if (error && (error.code === "auth/invalid-credential" ||
+                error.code === "auth/user-not-found" || error.code === "auth/wrong-password")) {
+            return "That email address and password do not match.";
+        }
+        if (error && error.code === "auth/too-many-requests") {
+            return "Too many sign-in attempts. Please wait and try again.";
+        }
+        return "Could not sign in to Firebase. Check your connection and Firebase Authentication setup.";
+    }
 
     function setLoading(on) {
         submitBtn.classList.toggle("is-loading", on);

@@ -9,7 +9,7 @@
                    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                    font-src 'self' https://fonts.gstatic.com;
                    img-src 'self' data:;
-                   connect-src 'self'">
+                   connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasedataconnect.googleapis.com https://*.googleapis.com">
     <title>Administrator sign in · AOG Manager</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -43,9 +43,9 @@
 
             <form class="form" id="loginForm" method="post" action="adminlogin.php" novalidate>
                 <div class="field">
-                    <input type="text" id="username" name="username" placeholder=" "
+                    <input type="email" id="email" name="email" placeholder=" "
                            autocomplete="username" required>
-                    <label for="username">Administrator username</label>
+                    <label for="email">Administrator email address</label>
                 </div>
 
                 <div class="field field--password">
@@ -74,6 +74,7 @@
 
     </div>
 
+    <script src="firebase-client.bundle.js"></script>
     <script src="../login.js"></script>
     <script src="../theme.js"></script>
 </body>

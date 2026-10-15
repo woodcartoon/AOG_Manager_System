@@ -9,7 +9,7 @@
                    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
                    font-src 'self' https://fonts.gstatic.com;
                    img-src 'self' data:;
-                   connect-src 'self'">
+                   connect-src 'self' https://identitytoolkit.googleapis.com https://securetoken.googleapis.com https://firebasedataconnect.googleapis.com https://firebaseinstallations.googleapis.com https://*.googleapis.com">
     <title>Members · AOG Manager</title>
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -34,6 +34,8 @@
             </div>
 
             <div class="topbar__actions">
+                <label class="visually-hidden" for="organizationSelect">Organization</label>
+                <select class="topbar__organization" id="organizationSelect" hidden></select>
                 <button type="button" class="btn btn--primary" id="addMemberBtn">Add member</button>
                 <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">Light mode</button>
                 <a href="login.html" class="topbar__logout" id="logoutBtn" data-transition>Sign out</a>
@@ -55,7 +57,7 @@
                     </div>
                     <div class="stat">
                         <p class="stat__value" id="statCheckedIn">0</p>
-                        <p class="stat__label">Signed in this service</p>
+                        <p class="stat__label">Recorded attendances</p>
                     </div>
                 </div>
                 <button type="button" class="stats__reset" id="newServiceBtn">Start next service</button>
@@ -74,6 +76,7 @@
                     <p class="members__count" id="membersCount"></p>
                 </div>
 
+                <p class="members__empty" id="cloudStatus" role="status" hidden></p>
                 <div class="members__list" id="membersList" role="list"></div>
 
                 <p class="members__empty" id="membersEmpty" hidden>
@@ -171,6 +174,7 @@
         </aside>
     </div>
 
+    <script src="firebase-client.bundle.js"></script>
     <script src="../dashboard.js"></script>
 </body>
 </html>

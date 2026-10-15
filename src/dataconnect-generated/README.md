@@ -1,5 +1,5 @@
 # Generated TypeScript README
-This README will guide you through the process of using the generated JavaScript SDK package for the connector `example`. It will also provide examples on how to use your generated SDK to call your Data Connect queries and mutations.
+This README will guide you through the process of using the generated JavaScript SDK package for the connector `aog-manager`. It will also provide examples on how to use your generated SDK to call your Data Connect queries and mutations.
 
 ***NOTE:** This README is generated alongside the generated SDK. If you make changes to this file, they will be overwritten when the SDK is regenerated.*
 
@@ -13,12 +13,13 @@ This README will guide you through the process of using the generated JavaScript
   - [*ListMembers*](#listmembers)
   - [*GetMember*](#getmember)
 - [**Mutations**](#mutations)
+  - [*BootstrapOrganization*](#bootstraporganization)
   - [*CreateMember*](#createmember)
   - [*UpdateMember*](#updatemember)
   - [*DeleteMember*](#deletemember)
 
 # Accessing the connector
-A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `example`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
+A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `aog-manager`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
 
 You can use this generated SDK by importing from the package `@dataconnect/generated` as shown below. Both CommonJS and ESM imports are supported.
 
@@ -60,7 +61,7 @@ The following is true for both the action shortcut function and the `QueryRef` f
 - If the Query accepts arguments, both the action shortcut function and the `QueryRef` function accept a single argument: an object that contains all the required variables (and the optional variables) for the Query
 - Both functions can be called with or without passing in a `DataConnect` instance as an argument. If no `DataConnect` argument is passed in, then the generated SDK will call `getDataConnect(connectorConfig)` behind the scenes for you.
 
-Below are examples of how to use the `example` connector's generated functions to execute each query. You can also follow the examples from the [Data Connect documentation](https://firebase.google.com/docs/data-connect/web-sdk#using-queries).
+Below are examples of how to use the `aog-manager` connector's generated functions to execute each query. You can also follow the examples from the [Data Connect documentation](https://firebase.google.com/docs/data-connect/web-sdk#using-queries).
 
 ## GetMyOrganizations
 You can execute the `GetMyOrganizations` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
@@ -99,15 +100,13 @@ Recall that executing the `GetMyOrganizations` query returns a `QueryPromise` th
 The `data` property is an object of type `GetMyOrganizationsData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
 ```typescript
 export interface GetMyOrganizationsData {
-  authUser?: {
-    userOrganizations_on_user: ({
-      role: string;
-      org: {
-        id: UUIDString;
-        name: string;
-      } & Organization_Key;
-    })[];
-  };
+  userOrganizations: ({
+    role: string;
+    org: {
+      id: UUIDString;
+      name: string;
+    } & Organization_Key;
+  })[];
 }
 ```
 ### Using `GetMyOrganizations`'s action shortcut function
@@ -125,12 +124,12 @@ const { data } = await getMyOrganizations();
 const dataConnect = getDataConnect(connectorConfig);
 const { data } = await getMyOrganizations(dataConnect);
 
-console.log(data.authUser);
+console.log(data.userOrganizations);
 
 // Or, you can use the `Promise` API.
 getMyOrganizations().then((response) => {
   const data = response.data;
-  console.log(data.authUser);
+  console.log(data.userOrganizations);
 });
 ```
 
@@ -152,12 +151,12 @@ const ref = getMyOrganizationsRef(dataConnect);
 // You can use the `await` keyword to wait for the promise to resolve.
 const { data } = await executeQuery(ref);
 
-console.log(data.authUser);
+console.log(data.userOrganizations);
 
 // Or, you can use the `Promise` API.
 executeQuery(ref).then((response) => {
   const data = response.data;
-  console.log(data.authUser);
+  console.log(data.userOrganizations);
 });
 ```
 
@@ -207,8 +206,6 @@ export interface ListServingTeamsData {
   servingTeams: ({
     id: UUIDString;
     name: string;
-    org: {
-    };
   } & ServingTeam_Key)[];
 }
 ```
@@ -331,8 +328,6 @@ export interface ListMembersData {
       id: UUIDString;
       name: string;
     } & ServingTeam_Key;
-    org: {
-    };
     servicesAttendedCount: Int64String;
     lastAttendedDate?: TimestampString | null;
   } & Member_Key)[];
@@ -458,8 +453,6 @@ export interface GetMemberData {
       id: UUIDString;
       name: string;
     } & ServingTeam_Key;
-    org: {
-    };
     servicesAttendedCount: Int64String;
     lastAttendedDate?: TimestampString | null;
   } & Member_Key;
@@ -543,7 +536,129 @@ The following is true for both the action shortcut function and the `MutationRef
 - If the Mutation accepts arguments, both the action shortcut function and the `MutationRef` function accept a single argument: an object that contains all the required variables (and the optional variables) for the Mutation
 - Both functions can be called with or without passing in a `DataConnect` instance as an argument. If no `DataConnect` argument is passed in, then the generated SDK will call `getDataConnect(connectorConfig)` behind the scenes for you.
 
-Below are examples of how to use the `example` connector's generated functions to execute each mutation. You can also follow the examples from the [Data Connect documentation](https://firebase.google.com/docs/data-connect/web-sdk#using-mutations).
+Below are examples of how to use the `aog-manager` connector's generated functions to execute each mutation. You can also follow the examples from the [Data Connect documentation](https://firebase.google.com/docs/data-connect/web-sdk#using-mutations).
+
+## BootstrapOrganization
+You can execute the `BootstrapOrganization` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+bootstrapOrganization(vars: BootstrapOrganizationVariables): MutationPromise<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+
+interface BootstrapOrganizationRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: BootstrapOrganizationVariables): MutationRef<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+}
+export const bootstrapOrganizationRef: BootstrapOrganizationRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+bootstrapOrganization(dc: DataConnect, vars: BootstrapOrganizationVariables): MutationPromise<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+
+interface BootstrapOrganizationRef {
+  ...
+  (dc: DataConnect, vars: BootstrapOrganizationVariables): MutationRef<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+}
+export const bootstrapOrganizationRef: BootstrapOrganizationRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the bootstrapOrganizationRef:
+```typescript
+const name = bootstrapOrganizationRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `BootstrapOrganization` mutation requires an argument of type `BootstrapOrganizationVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface BootstrapOrganizationVariables {
+  uid: string;
+  orgName: string;
+}
+```
+### Return Type
+Recall that executing the `BootstrapOrganization` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `BootstrapOrganizationData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface BootstrapOrganizationData {
+  organization_insert: Organization_Key;
+  userOrganization_insert: UserOrganization_Key;
+  servingTeam_insert: ServingTeam_Key;
+}
+```
+### Using `BootstrapOrganization`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, bootstrapOrganization, BootstrapOrganizationVariables } from '@dataconnect/generated';
+
+// The `BootstrapOrganization` mutation requires an argument of type `BootstrapOrganizationVariables`:
+const bootstrapOrganizationVars: BootstrapOrganizationVariables = {
+  uid: ..., 
+  orgName: ..., 
+};
+
+// Call the `bootstrapOrganization()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await bootstrapOrganization(bootstrapOrganizationVars);
+// Variables can be defined inline as well.
+const { data } = await bootstrapOrganization({ uid: ..., orgName: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await bootstrapOrganization(dataConnect, bootstrapOrganizationVars);
+
+console.log(data.organization_insert);
+console.log(data.userOrganization_insert);
+console.log(data.servingTeam_insert);
+
+// Or, you can use the `Promise` API.
+bootstrapOrganization(bootstrapOrganizationVars).then((response) => {
+  const data = response.data;
+  console.log(data.organization_insert);
+  console.log(data.userOrganization_insert);
+  console.log(data.servingTeam_insert);
+});
+```
+
+### Using `BootstrapOrganization`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, bootstrapOrganizationRef, BootstrapOrganizationVariables } from '@dataconnect/generated';
+
+// The `BootstrapOrganization` mutation requires an argument of type `BootstrapOrganizationVariables`:
+const bootstrapOrganizationVars: BootstrapOrganizationVariables = {
+  uid: ..., 
+  orgName: ..., 
+};
+
+// Call the `bootstrapOrganizationRef()` function to get a reference to the mutation.
+const ref = bootstrapOrganizationRef(bootstrapOrganizationVars);
+// Variables can be defined inline as well.
+const ref = bootstrapOrganizationRef({ uid: ..., orgName: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = bootstrapOrganizationRef(dataConnect, bootstrapOrganizationVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.organization_insert);
+console.log(data.userOrganization_insert);
+console.log(data.servingTeam_insert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.organization_insert);
+  console.log(data.userOrganization_insert);
+  console.log(data.servingTeam_insert);
+});
+```
 
 ## CreateMember
 You can execute the `CreateMember` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):

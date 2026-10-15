@@ -93,6 +93,16 @@ body { background: var(--vellum); }
     box-shadow: none;
 }
 
+.topbar__organization {
+    max-width: 14rem;
+    padding: 0.55rem 0.7rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    color: var(--ink);
+    font: inherit;
+}
+
 .topbar__logout {
     font-size: 0.88rem;
     color: var(--ink-muted);

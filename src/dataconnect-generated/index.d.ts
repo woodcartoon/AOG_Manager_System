@@ -1,12 +1,13 @@
-import { ConnectorConfig, DataConnect, QueryRef, QueryPromise, ExecuteQueryOptions, MutationRef, MutationPromise, DataConnectSettings } from 'firebase/data-connect';
+import { ConnectorConfig, DataConnect, QueryRef, QueryPromise, ExecuteQueryOptions, MutationRef, MutationPromise } from 'firebase/data-connect';
 
 export const connectorConfig: ConnectorConfig;
-export const dataConnectSettings: DataConnectSettings;
 
 export type TimestampString = string;
 export type UUIDString = string;
 export type Int64String = string;
 export type DateString = string;
+
+
 
 
 export interface Attendance_Key {
@@ -15,9 +16,15 @@ export interface Attendance_Key {
   __typename?: 'Attendance_Key';
 }
 
-export interface AuthUser_Key {
+export interface BootstrapOrganizationData {
+  organization_insert: Organization_Key;
+  userOrganization_insert: UserOrganization_Key;
+  servingTeam_insert: ServingTeam_Key;
+}
+
+export interface BootstrapOrganizationVariables {
   uid: string;
-  __typename?: 'AuthUser_Key';
+  orgName: string;
 }
 
 export interface CreateMemberData {
@@ -59,8 +66,6 @@ export interface GetMemberData {
       id: UUIDString;
       name: string;
     } & ServingTeam_Key;
-    org: {
-    };
     servicesAttendedCount: Int64String;
     lastAttendedDate?: TimestampString | null;
   } & Member_Key;
@@ -72,15 +77,13 @@ export interface GetMemberVariables {
 }
 
 export interface GetMyOrganizationsData {
-  authUser?: {
-    userOrganizations_on_user: ({
-      role: string;
-      org: {
-        id: UUIDString;
-        name: string;
-      } & Organization_Key;
-    })[];
-  };
+  userOrganizations: ({
+    role: string;
+    org: {
+      id: UUIDString;
+      name: string;
+    } & Organization_Key;
+  })[];
 }
 
 export interface ListMembersData {
@@ -97,8 +100,6 @@ export interface ListMembersData {
       id: UUIDString;
       name: string;
     } & ServingTeam_Key;
-    org: {
-    };
     servicesAttendedCount: Int64String;
     lastAttendedDate?: TimestampString | null;
   } & Member_Key)[];
@@ -112,8 +113,6 @@ export interface ListServingTeamsData {
   servingTeams: ({
     id: UUIDString;
     name: string;
-    org: {
-    };
   } & ServingTeam_Key)[];
 }
 
@@ -159,10 +158,22 @@ export interface UpdateMemberVariables {
 }
 
 export interface UserOrganization_Key {
-  userUid: string;
+  uid: string;
   orgId: UUIDString;
   __typename?: 'UserOrganization_Key';
 }
+
+interface BootstrapOrganizationRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: BootstrapOrganizationVariables): MutationRef<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: BootstrapOrganizationVariables): MutationRef<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+  operationName: string;
+}
+export const bootstrapOrganizationRef: BootstrapOrganizationRef;
+
+export function bootstrapOrganization(vars: BootstrapOrganizationVariables): MutationPromise<BootstrapOrganizationData, BootstrapOrganizationVariables>;
+export function bootstrapOrganization(dc: DataConnect, vars: BootstrapOrganizationVariables): MutationPromise<BootstrapOrganizationData, BootstrapOrganizationVariables>;
 
 interface CreateMemberRef {
   /* Allow users to create refs without passing in DataConnect */

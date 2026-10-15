@@ -1,70 +1,26 @@
 /* ==========================================================================
-   AOG Manager — member portal (index.html)
-   Local data store (localStorage) with view/edit/add/delete via a side
-   drawer. Swap `loadMembers` / `persistMembers` for real API calls whenever
-   the PHP + MySQL back end is ready — everything else stays the same.
+   AOG Manager — member portal (index.html), backed by Firebase SQL Connect.
    ========================================================================== */
 
 (function () {
     "use strict";
 
-    var STORAGE_KEY = "aog_members";
     var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-
-    var ROLES = [
-        { id: "pastor",     label: "Pastor",       varName: "--role-pastor" },
-        { id: "usher",      label: "Usher",        varName: "--role-usher" },
-        { id: "worshiper",  label: "Worshiper",    varName: "--role-worshiper" },
-        { id: "band",       label: "Band",         varName: "--role-band" },
-        { id: "sound",      label: "Sound crew",   varName: "--role-sound" },
-         { id: "member",      label: "Member",   varName: "--role-member" }
-    ];
+    var ROLES = [];
+    var members = [];
+    var orgId = null;
+    var canManageMembers = false;
+    var memberships = [];
 
     function roleLabel(id) {
         var r = ROLES.filter(function (r) { return r.id === id; })[0];
-        return r ? r.label : id;
+        return r ? r.label : "Unassigned team";
     }
 
     function roleColorVar(id) {
         var r = ROLES.filter(function (r) { return r.id === id; })[0];
         return r ? getComputedStyle(document.documentElement).getPropertyValue(r.varName).trim() : "";
     }
-
-    /* ---- Seed data (first run only) --------------------------------------- */
-
-    function seedMembers() {
-        var today = new Date().toISOString().slice(0, 10);
-        return [
-            { id: "m1", firstName: "Samuel",  lastName: "Nkosi",    role: "pastor",    phone: "082 111 2233", email: "samuel.nkosi@example.com",  joinDate: "2014-03-02", active: true,  checkedIn: true,  attendanceCount: 312, lastAttended: today },
-            { id: "m2", firstName: "Grace",   lastName: "Mokoena",  role: "pastor",    phone: "082 222 3344", email: "grace.mokoena@example.com",  joinDate: "2016-06-11", active: true,  checkedIn: false, attendanceCount: 245, lastAttended: "2026-09-13" },
-            { id: "m3", firstName: "Thabo",   lastName: "Dlamini",  role: "usher",     phone: "071 333 4455", email: "thabo.dlamini@example.com",  joinDate: "2019-01-20", active: true,  checkedIn: true,  attendanceCount: 180, lastAttended: today },
-            { id: "m4", firstName: "Lindiwe", lastName: "Zulu",     role: "usher",     phone: "071 444 5566", email: "lindiwe.zulu@example.com",   joinDate: "2021-09-05", active: true,  checkedIn: false, attendanceCount: 96,  lastAttended: "2026-09-13" },
-            { id: "m5", firstName: "Naledi",  lastName: "Khumalo",  role: "worshiper", phone: "083 555 6677", email: "naledi.khumalo@example.com", joinDate: "2018-11-14", active: true,  checkedIn: true,  attendanceCount: 201, lastAttended: today },
-            { id: "m6", firstName: "Sipho",   lastName: "Ndlovu",   role: "worshiper", phone: "083 666 7788", email: "sipho.ndlovu@example.com",   joinDate: "2022-02-27", active: false, checkedIn: false, attendanceCount: 40,  lastAttended: "2026-06-21" },
-            { id: "m7", firstName: "Precious",lastName: "Sithole",  role: "band",      phone: "084 777 8899", email: "precious.sithole@example.com", joinDate: "2017-05-09", active: true, checkedIn: true,  attendanceCount: 265, lastAttended: today },
-            { id: "m8", firstName: "Kagiso",  lastName: "Molefe",   role: "band",      phone: "084 888 9900", email: "kagiso.molefe@example.com",  joinDate: "2020-08-16", active: true,  checkedIn: false, attendanceCount: 128, lastAttended: "2026-09-13" },
-            { id: "m9", firstName: "Andile",  lastName: "Mahlangu", role: "sound",     phone: "072 999 0011", email: "andile.mahlangu@example.com",joinDate: "2015-12-01", active: true,  checkedIn: true,  attendanceCount: 288, lastAttended: today },
-            { id: "m10", firstName: "Zanele", lastName: "Cele",     role: "sound",     phone: "072 000 1122", email: "zanele.cele@example.com",    joinDate: "2023-04-18", active: true,  checkedIn: false, attendanceCount: 52,  lastAttended: "2026-09-13" }
-        ];
-    }
-
-    function loadMembers() {
-        try {
-            var raw = window.localStorage.getItem(STORAGE_KEY);
-            if (raw) return JSON.parse(raw);
-        } catch (err) { /* fall through to seed data */ }
-        var seeded = seedMembers();
-        persistMembers(seeded);
-        return seeded;
-    }
-
-    function persistMembers(list) {
-        try {
-            window.localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
-        } catch (err) { /* storage unavailable — state still holds for this session */ }
-    }
-
-    var members = loadMembers();
 
     /* ---- State -------------------------------------------------------------- */
 
@@ -82,6 +38,8 @@
     var el = {
         search: document.getElementById("searchInput"),
         addBtn: document.getElementById("addMemberBtn"),
+        organizationSelect: document.getElementById("organizationSelect"),
+        status: document.getElementById("cloudStatus"),
         teamFilters: document.getElementById("teamFilters"),
         list: document.getElementById("membersList"),
         empty: document.getElementById("membersEmpty"),
@@ -118,13 +76,24 @@
         deleteBtn: document.getElementById("deleteBtn")
     };
 
-    /* Populate the role <select> once. */
-    ROLES.forEach(function (r) {
-        var opt = document.createElement("option");
-        opt.value = r.id;
-        opt.textContent = r.label;
-        el.role.appendChild(opt);
-    });
+    function setServingTeams(teams) {
+        var colors = ["--role-pastor", "--role-usher", "--role-worshiper", "--role-band", "--role-sound", "--role-member"];
+        ROLES = teams.map(function (team, index) {
+            return {
+                id: team.id,
+                label: team.name,
+                varName: colors[index % colors.length]
+            };
+        });
+
+        el.role.replaceChildren();
+        ROLES.forEach(function (team) {
+            var option = document.createElement("option");
+            option.value = team.id;
+            option.textContent = team.label;
+            el.role.appendChild(option);
+        });
+    }
 
     /* ---- Rendering: team filter chips ----------------------------------------- */
 
@@ -139,10 +108,18 @@
             chip.type = "button";
             chip.className = "chip" + (state.team === id ? " is-active" : "");
             if (colorVar) chip.style.setProperty("--chip-color", colorVar);
-            chip.innerHTML =
-                (colorVar ? '<span class="chip__dot"></span>' : "") +
-                "<span>" + label + "</span>" +
-                '<span class="chip__count">' + count + "</span>";
+            if (colorVar) {
+                var dot = document.createElement("span");
+                dot.className = "chip__dot";
+                chip.appendChild(dot);
+            }
+            var text = document.createElement("span");
+            text.textContent = label;
+            chip.appendChild(text);
+            var countBadge = document.createElement("span");
+            countBadge.className = "chip__count";
+            countBadge.textContent = count;
+            chip.appendChild(countBadge);
             chip.addEventListener("click", function () {
                 state.team = id;
                 render();
@@ -197,20 +174,41 @@
 
                 var color = roleColorVar(m.role);
 
-                row.innerHTML =
-                    '<span class="member-row__avatar" style="--avatar-color:' + color + '">' + initials(m) + '</span>' +
-                    '<span class="member-row__name">' +
-                        "<strong>" + m.firstName + " " + m.lastName + "</strong>" +
-                        '<span class="member-row__role"><span class="chip__dot" style="--chip-color:' + color + '"></span>' + roleLabel(m.role) + "</span>" +
-                    "</span>" +
-                    '<span class="member-row__status' + (m.active ? "" : " is-inactive") + '">' + (m.active ? "Active" : "Inactive") + "</span>" +
-                    '<label class="member-row__checkin" title="Signed in this service">' +
-                        '<span class="mini-toggle">' +
-                            '<input type="checkbox"' + (m.checkedIn ? " checked" : "") + " data-checkin-id=\"" + m.id + "\">" +
-                            '<span class="mini-toggle__track"></span>' +
-                        "</span>" +
-                    "</label>" +
-                    '<svg class="member-row__chevron" viewBox="0 0 24 24"><polyline points="9 6 15 12 9 18"/></svg>';
+                var avatar = document.createElement("span");
+                avatar.className = "member-row__avatar";
+                avatar.style.setProperty("--avatar-color", color);
+                avatar.textContent = initials(m);
+
+                var name = document.createElement("span");
+                name.className = "member-row__name";
+                var fullName = document.createElement("strong");
+                fullName.textContent = m.firstName + " " + m.lastName;
+                var role = document.createElement("span");
+                role.className = "member-row__role";
+                var roleDot = document.createElement("span");
+                roleDot.className = "chip__dot";
+                roleDot.style.setProperty("--chip-color", color);
+                role.appendChild(roleDot);
+                role.appendChild(document.createTextNode(roleLabel(m.role)));
+                name.appendChild(fullName);
+                name.appendChild(role);
+
+                var status = document.createElement("span");
+                status.className = "member-row__status" + (m.active ? "" : " is-inactive");
+                status.textContent = m.active ? "Active" : "Inactive";
+
+                var attendance = document.createElement("span");
+                attendance.className = "member-row__checkin";
+                attendance.title = "Recorded attendances";
+                attendance.textContent = m.attendanceCount + " visits";
+
+                var chevron = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+                chevron.setAttribute("class", "member-row__chevron");
+                chevron.setAttribute("viewBox", "0 0 24 24");
+                var chevronLine = document.createElementNS("http://www.w3.org/2000/svg", "polyline");
+                chevronLine.setAttribute("points", "9 6 15 12 9 18");
+                chevron.appendChild(chevronLine);
+                row.append(avatar, name, status, attendance, chevron);
 
                 frag.appendChild(row);
             });
@@ -241,7 +239,7 @@
     function renderStats() {
         var total = members.length;
         var active = members.filter(function (m) { return m.active; }).length;
-        var checkedIn = members.filter(function (m) { return m.checkedIn; }).length;
+        var checkedIn = members.reduce(function (sum, m) { return sum + m.attendanceCount; }, 0);
 
         animateCount(el.statTotal, total);
         animateCount(el.statActive, active);
@@ -256,15 +254,9 @@
         renderStats();
     }
 
-    /* ---- Check-in toggle (direct from the row, no drawer needed) -------------- */
+    /* ---- Member selection ---------------------------------------------------- */
 
     el.list.addEventListener("click", function (e) {
-        var checkbox = e.target.closest("input[data-checkin-id]");
-        if (checkbox) {
-            e.stopPropagation();
-            toggleCheckIn(checkbox.getAttribute("data-checkin-id"), checkbox.checked);
-            return;
-        }
         var row = e.target.closest(".member-row");
         if (row) openDrawer(row.dataset.id, "view");
     });
@@ -278,29 +270,6 @@
         }
     });
 
-    function toggleCheckIn(id, isChecked) {
-        var m = findMember(id);
-        if (!m) return;
-
-        if (isChecked && !m.checkedIn) {
-            m.attendanceCount += 1;
-            m.lastAttended = new Date().toISOString().slice(0, 10);
-        } else if (!isChecked && m.checkedIn) {
-            m.attendanceCount = Math.max(0, m.attendanceCount - 1);
-        }
-        m.checkedIn = isChecked;
-
-        persistMembers(members);
-        renderStats();
-
-        // If this member's drawer happens to be open, keep it in sync.
-        if (state.editingId === id) {
-            el.checkedIn.checked = m.checkedIn;
-            el.attendanceCount.textContent = m.attendanceCount;
-            el.lastAttended.textContent = m.lastAttended || "—";
-        }
-    }
-
     /* ---- Search ------------------------------------------------------------- */
 
     el.search.addEventListener("input", function () {
@@ -310,12 +279,8 @@
 
     /* ---- Start next service: clears check-in marks for the next gathering --- */
 
-    el.newServiceBtn.addEventListener("click", function () {
-        if (!window.confirm("Start the next service? Everyone's sign-in mark will be cleared.")) return;
-        members.forEach(function (m) { m.checkedIn = false; });
-        persistMembers(members);
-        render();
-    });
+    el.newServiceBtn.hidden = true;
+    el.checkedIn.closest(".toggle").hidden = true;
 
     /* ---- Drawer: find / open / close ----------------------------------------- */
 
@@ -337,7 +302,6 @@
         el.address.value = m ? (m.address || "") : "";
         el.joinDate.value = m ? m.joinDate : new Date().toISOString().slice(0, 10);
         el.active.checked = m ? m.active : true;
-        el.checkedIn.checked = m ? m.checkedIn : false;
         el.attendanceCount.textContent = m ? m.attendanceCount : 0;
         el.lastAttended.textContent = (m && m.lastAttended) ? m.lastAttended : "—";
         el.drawerAvatar.textContent = m ? initials(m) : "+";
@@ -352,9 +316,9 @@
         el.drawerTitle.textContent = isAdd ? "Add member" : (isEdit ? "Edit member" : "Member");
         setFieldsDisabled(!isEdit);
         el.attendanceBlock.hidden = isAdd;
-        el.deleteBtn.hidden = isAdd;
+        el.deleteBtn.hidden = isAdd || !canManageMembers;
 
-        el.editBtn.hidden = isEdit;
+        el.editBtn.hidden = isEdit || !canManageMembers;
         el.saveBtn.hidden = !isEdit;
         el.cancelBtn.hidden = !isEdit;
 
@@ -404,19 +368,27 @@
         setMode("view");
     });
 
-    el.deleteBtn.addEventListener("click", function () {
+    el.deleteBtn.addEventListener("click", async function () {
         var m = findMember(state.editingId);
         if (!m) return;
         if (!window.confirm("Remove " + m.firstName + " " + m.lastName + " from the roll? This can't be undone.")) return;
-        members = members.filter(function (x) { return x.id !== m.id; });
-        persistMembers(members);
-        closeDrawer();
-        render();
+        el.deleteBtn.disabled = true;
+        try {
+            await window.AogFirebase.removeMember({ id: m.id, orgId: orgId });
+            await refreshMembers();
+            closeDrawer();
+            render();
+        } catch (error) {
+            el.error.textContent = getOperationError(error);
+            el.error.hidden = false;
+        } finally {
+            el.deleteBtn.disabled = false;
+        }
     });
 
     /* ---- Save (create or update) ---------------------------------------------- */
 
-    el.form.addEventListener("submit", function (e) {
+    el.form.addEventListener("submit", async function (e) {
         e.preventDefault();
 
         var firstName = el.firstName.value.trim();
@@ -429,50 +401,153 @@
             return;
         }
 
-        if (state.mode === "add") {
-            var fresh = {
-                id: "m" + Date.now(),
-                firstName: firstName,
-                lastName: lastName,
-                role: el.role.value,
-                phone: el.phone.value.trim(),
-                email: el.email.value.trim(),
-                address: el.address.value.trim(),
-                joinDate: el.joinDate.value || new Date().toISOString().slice(0, 10),
-                active: el.active.checked,
-                checkedIn: el.checkedIn.checked,
-                attendanceCount: 0,
-                lastAttended: null
-            };
-            members.push(fresh);
-            persistMembers(members);
-            closeDrawer();
-            render();
+        if (!orgId || !el.role.value) {
+            el.error.textContent = "This organization has no serving teams yet. Ask an administrator to add a team before saving members.";
+            el.error.hidden = false;
             return;
         }
 
-        var m = findMember(state.editingId);
-        if (!m) return;
-
-        m.firstName = firstName;
-        m.lastName = lastName;
-        m.role = el.role.value;
-        m.phone = el.phone.value.trim();
-        m.email = el.email.value.trim();
-        m.address = el.address.value.trim();
-        m.joinDate = el.joinDate.value || m.joinDate;
-        m.active = el.active.checked;
-        m.checkedIn = el.checkedIn.checked;
-
-        persistMembers(members);
-        fillForm(m);
-        setMode("view");
-        render();
+        var memberValues = {
+            orgId: orgId,
+            servingTeamId: el.role.value,
+            firstName: firstName,
+            lastName: lastName,
+            email: el.email.value.trim() || null,
+            phone: el.phone.value.trim() || null,
+            address: el.address.value.trim() || null,
+            joinDate: el.joinDate.value || null,
+            active: el.active.checked
+        };
+        el.saveBtn.disabled = true;
+        try {
+            if (state.mode === "add") {
+                await window.AogFirebase.addMember(memberValues);
+                await refreshMembers();
+                closeDrawer();
+            } else {
+                var current = findMember(state.editingId);
+                if (!current) return;
+                await window.AogFirebase.saveMember(Object.assign({}, memberValues, { id: current.id }));
+                await refreshMembers();
+                fillForm(findMember(current.id));
+                setMode("view");
+            }
+            render();
+        } catch (error) {
+            el.error.textContent = getOperationError(error);
+            el.error.hidden = false;
+        } finally {
+            el.saveBtn.disabled = false;
+        }
     });
+
+    async function refreshMembers() {
+        var records = await window.AogFirebase.getMembers(orgId);
+        members = records.map(function (record) {
+            return {
+                id: record.id,
+                firstName: record.firstName,
+                lastName: record.lastName,
+                role: record.servingTeam ? record.servingTeam.id : "",
+                phone: record.phone || "",
+                email: record.email || "",
+                address: record.address || "",
+                joinDate: record.joinDate || "",
+                active: record.active,
+                attendanceCount: Number(record.servicesAttendedCount || 0),
+                lastAttended: record.lastAttendedDate ? record.lastAttendedDate.slice(0, 10) : null
+            };
+        });
+    }
+
+    function getOperationError(error) {
+        return error && error.message
+            ? "Firebase could not save this change: " + error.message
+            : "Firebase could not save this change. Check your connection and permissions.";
+    }
+
+    async function initializeCloudData() {
+        el.addBtn.disabled = true;
+        el.status.hidden = false;
+        el.status.textContent = "Connecting to Firebase…";
+        try {
+            var user = await window.AogFirebase.getCurrentUser();
+            if (!user) {
+                window.location.replace("login.html");
+                return;
+            }
+
+            var organizations = await window.AogFirebase.getOrganizations();
+            if (!organizations.length) {
+                el.status.textContent = "Your Firebase account is signed in, but it is not assigned to an organization yet. Ask an administrator to finish the one-time organization setup.";
+                return;
+            }
+
+            memberships = organizations;
+            organizations.forEach(function (membership) {
+                var option = document.createElement("option");
+                option.value = membership.org.id;
+                option.textContent = membership.org.name;
+                el.organizationSelect.appendChild(option);
+            });
+            el.organizationSelect.hidden = organizations.length < 2;
+            el.organizationSelect.addEventListener("change", function () {
+                loadOrganization(el.organizationSelect.value);
+            });
+            await loadOrganization(organizations[0].org.id);
+        } catch (error) {
+            el.status.textContent = getOperationError(error);
+            el.addBtn.disabled = true;
+        }
+    }
+
+    async function loadOrganization(selectedOrgId) {
+        orgId = selectedOrgId;
+        state.team = "all";
+        state.search = "";
+        el.search.value = "";
+        var membership = memberships.filter(function (item) {
+            return item.org.id === selectedOrgId;
+        })[0];
+        canManageMembers = !!membership && (membership.role === "ADMIN" || membership.role === "TEAM_LEAD");
+        el.addBtn.hidden = !canManageMembers;
+        el.addBtn.disabled = true;
+        el.status.hidden = false;
+        el.status.textContent = "Loading organization data from Firebase…";
+        try {
+            var teams = await window.AogFirebase.getServingTeams(orgId);
+            setServingTeams(teams);
+            await refreshMembers();
+            el.status.hidden = true;
+            el.addBtn.disabled = !teams.length;
+            if (!teams.length && canManageMembers) {
+                el.status.hidden = false;
+                el.status.textContent = "This organization has no serving teams yet. Add a serving team before creating members.";
+            }
+            el.empty.textContent = members.length
+                ? "No one matches that search or team. Try a different name, or clear the filter."
+                : "No members are in this cloud database yet. Use Add member to create the first record.";
+            render();
+        } catch (error) {
+            el.status.textContent = getOperationError(error);
+        }
+    }
 
     /* ---- Sign out: fade before navigating, matching the login pages ----------- */
 
-    document.querySelectorAll("a[data-transition]").forEach(function (link) {
+    var logoutLink = document.getElementById("logoutBtn");
+    logoutLink.addEventListener("click", async function (e) {
+        e.preventDefault();
+        try {
+            await window.AogFirebase.signOut();
+            window.location.href = "login.html";
+        } catch (error) {
+            el.status.hidden = false;
+            el.status.textContent = getOperationError(error);
+        }
+    });
+
+    document.querySelectorAll("a[data-transition]:not(#logoutBtn)").forEach(function (link) {
         link.addEventListener("click", function (e) {
             if (reduceMotion || e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;
             e.preventDefault();
@@ -484,5 +559,5 @@
 
     /* ---- Go ---------------------------------------------------------------- */
 
-    render();
+    initializeCloudData();
 })();

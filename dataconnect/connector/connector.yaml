@@ -1,0 +1,10 @@
+connectorId: aog-manager
+generate:
+  javascriptSdk:
+    outputDir: "../../src/dataconnect-generated"
+    package: "@dataconnect/generated"
+    packageJsonDir: "../../"
+  adminNodeSdk:
+    outputDir: "../../src/dataconnect-admin-generated"
+    package: "@dataconnect/admin-generated"
+    packageJsonDir: "../../"

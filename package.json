@@ -8,16 +8,20 @@
   "type": "commonjs",
   "main": "main.js",
   "scripts": {
-    "start": "electron ."
+    "build:renderer": "node scripts/build-renderer.cjs",
+    "bootstrap:organization": "node scripts/bootstrap-organization.cjs",
+    "start": "npm run build:renderer && electron ."
   },
   "dependencies": {
+    "@dataconnect/admin-generated": "file:src/dataconnect-admin-generated",
     "@dataconnect/generated": "file:src/dataconnect-generated",
     "electron": "^44.4.1",
-    "firebase": "^13.0.0"
+    "firebase": "^12.11.0"
   },
   "devDependencies": {
     "electron-builder": "^26.15.3",
-    "esbuild": "^0.28.2"
+    "esbuild": "^0.28.2",
+    "firebase-admin": "^13.4.0"
   },
   "allowScripts": {
     "electron-winstaller@5.4.0": true

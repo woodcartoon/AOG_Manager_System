@@ -1,0 +1,113 @@
+mutation BootstrapOrganization($uid: String!, $orgName: String!)
+  @auth(level: NO_ACCESS)
+  @transaction {
+  query @redact {
+    userOrganizations(where: { uid: { eq: $uid } })
+      @check(expr: "this.size() == 0", message: "This user already belongs to an organization.") {
+      uid
+    }
+  }
+  organization_insert(data: {
+    name: $orgName
+    createdAt_expr: "request.time"
+  })
+  userOrganization_insert(data: {
+    uid: $uid
+    orgId_expr: "response.organization_insert.id"
+    role: "ADMIN"
+  })
+  servingTeam_insert(data: {
+    orgId_expr: "response.organization_insert.id"
+    name: "General"
+  })
+}
+
+mutation CreateMember(
+  $orgId: UUID!
+  $servingTeamId: UUID!
+  $firstName: String!
+  $lastName: String!
+  $email: String
+  $phone: String
+  $address: String
+  $joinDate: Date
+  $active: Boolean!
+) @auth(level: USER) @transaction {
+  query @redact {
+    userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+      @check(expr: "this != null", message: "You do not have access to this organization.") {
+      role @check(expr: "this == 'ADMIN' || this == 'TEAM_LEAD'", message: "You do not have permission to add members.")
+    }
+    servingTeam(first: { where: { id: { eq: $servingTeamId }, orgId: { eq: $orgId } } })
+      @check(expr: "this != null", message: "Choose a serving team from this organization.") {
+      id
+    }
+  }
+  member_insert(data: {
+    orgId: $orgId
+    servingTeamId: $servingTeamId
+    firstName: $firstName
+    lastName: $lastName
+    email: $email
+    phone: $phone
+    address: $address
+    joinDate: $joinDate
+    active: $active
+    servicesAttendedCount: 0
+  })
+}
+
+mutation UpdateMember(
+  $id: UUID!
+  $orgId: UUID!
+  $servingTeamId: UUID!
+  $firstName: String!
+  $lastName: String!
+  $email: String
+  $phone: String
+  $address: String
+  $joinDate: Date
+  $active: Boolean!
+) @auth(level: USER) @transaction {
+  query @redact {
+    userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+      @check(expr: "this != null", message: "You do not have access to this organization.") {
+      role @check(expr: "this == 'ADMIN' || this == 'TEAM_LEAD'", message: "You do not have permission to update members.")
+    }
+    member(first: { where: { id: { eq: $id }, orgId: { eq: $orgId } } })
+      @check(expr: "this != null", message: "Member not found in this organization.") {
+      id
+    }
+    servingTeam(first: { where: { id: { eq: $servingTeamId }, orgId: { eq: $orgId } } })
+      @check(expr: "this != null", message: "Choose a serving team from this organization.") {
+      id
+    }
+  }
+  member_update(
+    id: $id
+    data: {
+      servingTeamId: $servingTeamId
+      firstName: $firstName
+      lastName: $lastName
+      email: $email
+      phone: $phone
+      address: $address
+      joinDate: $joinDate
+      active: $active
+    }
+  )
+}
+
+mutation DeleteMember($id: UUID!, $orgId: UUID!) @auth(level: USER) @transaction {
+  query @redact {
+    userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+      @check(expr: "this != null", message: "You do not have access to this organization.") {
+      role @check(expr: "this == 'ADMIN' || this == 'TEAM_LEAD'", message: "You do not have permission to remove members.")
+    }
+    member(first: { where: { id: { eq: $id }, orgId: { eq: $orgId } } })
+      @check(expr: "this != null", message: "Member not found in this organization.") {
+      id
+    }
+  }
+  member_delete(id: $id)
+}

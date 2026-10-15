@@ -1,0 +1,69 @@
+query GetMyOrganizations @auth(level: USER) {
+  userOrganizations(where: { uid: { eq_expr: "auth.uid" } }) {
+    role
+    org {
+      id
+      name
+    }
+  }
+}
+
+query ListServingTeams($orgId: UUID!) @auth(level: USER) {
+  userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+    @check(expr: "this != null", message: "You do not have access to this organization.")
+    @redact {
+    orgId
+  }
+  servingTeams(where: { orgId: { eq: $orgId } }, orderBy: { name: ASC }) {
+    id
+    name
+  }
+}
+
+query ListMembers($orgId: UUID!) @auth(level: USER) {
+  userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+    @check(expr: "this != null", message: "You do not have access to this organization.")
+    @redact {
+    orgId
+  }
+  members(where: { orgId: { eq: $orgId } }, orderBy: [{ lastName: ASC }, { firstName: ASC }]) {
+    id
+    firstName
+    lastName
+    email
+    phone
+    address
+    joinDate
+    active
+    servingTeam {
+      id
+      name
+    }
+    servicesAttendedCount
+    lastAttendedDate
+  }
+}
+
+query GetMember($id: UUID!, $orgId: UUID!) @auth(level: USER) {
+  userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+    @check(expr: "this != null", message: "You do not have access to this organization.")
+    @redact {
+    orgId
+  }
+  member(first: { where: { id: { eq: $id }, orgId: { eq: $orgId } } }) {
+    id
+    firstName
+    lastName
+    email
+    phone
+    address
+    joinDate
+    active
+    servingTeam {
+      id
+      name
+    }
+    servicesAttendedCount
+    lastAttendedDate
+  }
+}
