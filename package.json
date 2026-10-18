@@ -10,6 +10,7 @@
   "scripts": {
     "build:renderer": "node scripts/build-renderer.cjs",
     "bootstrap:organization": "node scripts/bootstrap-organization.cjs",
+    "seed:serving-teams": "node scripts/seed-serving-teams.cjs",
     "start": "npm run build:renderer && electron ."
   },
   "dependencies": {

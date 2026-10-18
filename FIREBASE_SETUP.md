@@ -35,6 +35,15 @@ members; an empty cloud database will show an empty member list.
    The bootstrap operation is Admin-SDK-only and rejects a UID already
    assigned to an organization. It creates no member records. Do not commit
    service-account keys or credentials to the repository.
+5. Add the standard serving teams to an organization. This command is safe to
+   run again; it adds any missing teams and leaves existing teams unchanged:
+
+   ```powershell
+   npm run seed:serving-teams -- <organization-id>
+   ```
+
+   The default teams are **General**, **Pastor**, **Youth Pastor**,
+   **Worshiper**, **Usher**, **Band**, and **Sound Team**.
 
 ## Run the desktop app
 

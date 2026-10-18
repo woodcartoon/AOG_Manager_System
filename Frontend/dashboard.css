@@ -5,11 +5,14 @@
    ========================================================================== */
 
 :root {
+    --role-general:   var(--ink-muted);
     --role-pastor:    var(--brass);
-    --role-usher:     var(--olive);
+    --role-youth-pastor: #a66a3f;
     --role-worshiper: #7a465c;
+    --role-usher:     var(--olive);
     --role-band:      var(--navy);
-    --role-sound:     #5b6478;
+    --role-sound-team: #5b6478;
+    --role-member:    var(--ink-muted);
 
     --danger-bg: rgba(168, 65, 47, 0.08);
 }

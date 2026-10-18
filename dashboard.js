@@ -77,12 +77,20 @@
     };
 
     function setServingTeams(teams) {
-        var colors = ["--role-pastor", "--role-usher", "--role-worshiper", "--role-band", "--role-sound", "--role-member"];
+        var colors = {
+            "general": "--role-general",
+            "pastor": "--role-pastor",
+            "youth pastor": "--role-youth-pastor",
+            "worshiper": "--role-worshiper",
+            "usher": "--role-usher",
+            "band": "--role-band",
+            "sound team": "--role-sound-team"
+        };
         ROLES = teams.map(function (team, index) {
             return {
                 id: team.id,
                 label: team.name,
-                varName: colors[index % colors.length]
+                varName: colors[team.name.trim().toLowerCase()] || "--role-member"
             };
         });
 
