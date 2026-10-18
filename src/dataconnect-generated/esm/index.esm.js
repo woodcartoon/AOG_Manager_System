@@ -61,7 +61,6 @@ export const getMyOrganizationsRef = (dc) => {
 getMyOrganizationsRef.operationName = 'GetMyOrganizations';
 
 export function getMyOrganizations(dcOrOptions, options) {
-  
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrOptions, options, undefined,false, false);
   return executeQuery(getMyOrganizationsRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
 }

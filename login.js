@@ -112,6 +112,9 @@
         setLoading(true);
 
         try {
+            if (!window.AogFirebase || typeof window.AogFirebase.signIn !== "function") {
+                throw new Error("Firebase client bundle is unavailable. Close the app and restart it with npm start from the project folder.");
+            }
             await window.AogFirebase.signIn(email.value.trim(), password.value);
             document.body.classList.add("is-leaving");
             window.setTimeout(function () {
@@ -131,18 +134,37 @@
                 error.code === "auth/user-not-found" || error.code === "auth/wrong-password")) {
             return "That email address and password do not match.";
         }
+        if (error && error.code === "auth/network-request-failed") {
+            return "Firebase could not be reached. Check your internet connection, VPN, firewall, or proxy.";
+        }
+        if (error && error.code === "auth/operation-not-allowed") {
+            return "Email/Password sign-in is disabled. Enable it in Firebase Console under Authentication > Sign-in method.";
+        }
+        if (error && (error.code === "auth/api-key-not-valid" ||
+                error.code === "auth/invalid-api-key")) {
+            return "The Firebase API key is invalid. Check the Firebase app configuration.";
+        }
+        if (error && error.code === "auth/invalid-email") {
+            return "Enter a valid email address.";
+        }
+        if (error && error.code === "auth/user-disabled") {
+            return "This Firebase Authentication account is disabled. Contact your administrator.";
+        }
         if (error && error.code === "auth/too-many-requests") {
             return "Too many sign-in attempts. Please wait and try again.";
         }
-        return "Could not sign in to Firebase. Check your connection and Firebase Authentication setup.";
+        var errorCode = error && typeof error.code === "string" ? error.code : "unknown";
+        var errorName = error && typeof error.name === "string" ? error.name : "Error";
+        var errorMessage = error && typeof error.message === "string"
+            ? error.message.replace(/\s+/g, " ").trim().slice(0, 160)
+            : "No additional error details were provided.";
+        return "Firebase sign-in failed (" + errorCode + "; " + errorName + "): " + errorMessage;
     }
 
     function setLoading(on) {
         submitBtn.classList.toggle("is-loading", on);
         submitBtn.querySelector(".btn__label").textContent = on ? "Signing in" : "Sign in";
     }
-
-    /* ---- Exit transition (admin portal, and any [data-transition] link) --- */
 
     document.querySelectorAll("a[data-transition]").forEach(function (link) {
         link.addEventListener("click", function (e) {

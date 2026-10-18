@@ -10,5 +10,11 @@ esbuild.buildSync({
     platform: "browser",
     format: "iife",
     globalName: "AogFirebase",
+    alias: {
+        "@firebase/app": path.join(root, "node_modules", "@firebase", "app")
+    },
+    footer: {
+        js: "globalThis.AogFirebase = AogFirebase;"
+    },
     target: ["es2022"]
 });
