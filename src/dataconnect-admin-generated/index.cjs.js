@@ -35,6 +35,20 @@ function deleteMember(dcOrVarsOrOptions, varsOrOptions, options) {
 }
 exports.deleteMember = deleteMember;
 
+function createService(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('CreateService', inputVars, inputOpts);
+}
+exports.createService = createService;
+
+function recordServiceAttendance(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeMutation('RecordServiceAttendance', inputVars, inputOpts);
+}
+exports.recordServiceAttendance = recordServiceAttendance;
+
 function getMyOrganizations(dcOrOptions, options) {
   const { dc: dcInstance, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrOptions, options, undefined);
   dcInstance.useGen(true);
@@ -62,4 +76,11 @@ function getMember(dcOrVarsOrOptions, varsOrOptions, options) {
   return dcInstance.executeQuery('GetMember', inputVars, inputOpts);
 }
 exports.getMember = getMember;
+
+function listServiceAttendances(dcOrVarsOrOptions, varsOrOptions, options) {
+  const { dc: dcInstance, vars: inputVars, options: inputOpts} = validateAdminArgs(connectorConfig, dcOrVarsOrOptions, varsOrOptions, options, true, true);
+  dcInstance.useGen(true);
+  return dcInstance.executeQuery('ListServiceAttendances', inputVars, inputOpts);
+}
+exports.listServiceAttendances = listServiceAttendances;
 

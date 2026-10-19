@@ -37,6 +37,10 @@
                 <label class="visually-hidden" for="organizationSelect">Organization</label>
                 <select class="topbar__organization" id="organizationSelect" hidden></select>
                 <button type="button" class="btn btn--primary" id="addMemberBtn">Add member</button>
+                <button type="button" class="btn btn--ghost topbar__refresh" id="refreshBtn" aria-label="Fetch the latest database changes" title="Fetch the latest database changes" disabled>
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 7v5h-5"/><path d="M19 12a7 7 0 1 1-2-4.9L20 12"/></svg>
+                    <span>Refresh</span>
+                </button>
                 <button type="button" class="theme-toggle" data-theme-toggle aria-label="Switch theme">Light mode</button>
                 <a href="login.html" class="topbar__logout" id="logoutBtn" data-transition>Sign out</a>
             </div>
@@ -60,7 +64,7 @@
                         <p class="stat__label">Recorded attendances</p>
                     </div>
                 </div>
-                <button type="button" class="stats__reset" id="newServiceBtn">Start next service</button>
+                <button type="button" class="stats__reset" id="submitServiceBtn" hidden>Submit today's service</button>
             </section>
 
             <!-- ================= Serving teams ================= -->
@@ -145,12 +149,6 @@
                     <span class="toggle__label">Active member</span>
                 </label>
 
-                <label class="toggle toggle--service">
-                    <input type="checkbox" id="fieldCheckedIn">
-                    <span class="toggle__track"><span class="toggle__thumb"></span></span>
-                    <span class="toggle__label">Signed in this service</span>
-                </label>
-
                 <dl class="drawer__attendance" id="attendanceBlock">
                     <div>
                         <dt>Services attended</dt>
@@ -172,6 +170,45 @@
                 </div>
             </form>
         </aside>
+    </div>
+
+    <div class="service-overlay" id="serviceOverlay" hidden>
+        <section class="service-dialog" role="dialog" aria-modal="true" aria-labelledby="serviceDialogTitle">
+            <header class="service-dialog__head">
+                <div>
+                    <p class="panel__eyebrow">Attendance</p>
+                    <h2 id="serviceDialogTitle">Submit today's service</h2>
+                </div>
+                <button type="button" class="drawer__close" id="serviceDialogClose" aria-label="Close service form">
+                    <svg viewBox="0 0 24 24" aria-hidden="true"><line x1="5" y1="5" x2="19" y2="19"/><line x1="19" y1="19" x2="5" y2="5"/></svg>
+                </button>
+            </header>
+
+            <form id="serviceForm" class="service-dialog__form" novalidate>
+                <div class="drawer__grid">
+                    <div class="field">
+                        <input type="text" id="serviceType" value="Sunday AM" placeholder=" " maxlength="100" required>
+                        <label for="serviceType">Service name</label>
+                    </div>
+                    <div class="field">
+                        <input type="date" id="serviceDate" required>
+                        <label for="serviceDate">Service date</label>
+                    </div>
+                </div>
+
+                <fieldset class="service-attendance">
+                    <legend>Members who attended</legend>
+                    <p class="service-attendance__hint">Select each member who was present. Their attendance total will increase when you submit.</p>
+                    <div class="service-attendance__list" id="serviceAttendanceMembers"></div>
+                </fieldset>
+
+                <p class="drawer__error" id="serviceError" role="alert" hidden></p>
+                <div class="service-dialog__actions">
+                    <button type="button" class="btn btn--ghost" id="serviceCancelBtn">Cancel</button>
+                    <button type="submit" class="btn btn--primary" id="serviceSubmitBtn">Submit service</button>
+                </div>
+            </form>
+        </section>
     </div>
 
     <script src="firebase-client.bundle.js"></script>

@@ -12,11 +12,14 @@ This README will guide you through the process of using the generated JavaScript
   - [*ListServingTeams*](#listservingteams)
   - [*ListMembers*](#listmembers)
   - [*GetMember*](#getmember)
+  - [*ListServiceAttendances*](#listserviceattendances)
 - [**Mutations**](#mutations)
   - [*BootstrapOrganization*](#bootstraporganization)
   - [*CreateMember*](#createmember)
   - [*UpdateMember*](#updatemember)
   - [*DeleteMember*](#deletemember)
+  - [*CreateService*](#createservice)
+  - [*RecordServiceAttendance*](#recordserviceattendance)
 
 # Accessing the connector
 A connector is a collection of Queries and Mutations. One SDK is generated for each connector - this SDK is generated for the connector `aog-manager`. You can find more information about connectors in the [Data Connect documentation](https://firebase.google.com/docs/data-connect#how-does).
@@ -520,6 +523,120 @@ console.log(data.member);
 executeQuery(ref).then((response) => {
   const data = response.data;
   console.log(data.member);
+});
+```
+
+## ListServiceAttendances
+You can execute the `ListServiceAttendances` query using the following action shortcut function, or by calling `executeQuery()` after calling the following `QueryRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+listServiceAttendances(vars: ListServiceAttendancesVariables, options?: ExecuteQueryOptions): QueryPromise<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+
+interface ListServiceAttendancesRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListServiceAttendancesVariables): QueryRef<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+}
+export const listServiceAttendancesRef: ListServiceAttendancesRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `QueryRef` function.
+```typescript
+listServiceAttendances(dc: DataConnect, vars: ListServiceAttendancesVariables, options?: ExecuteQueryOptions): QueryPromise<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+
+interface ListServiceAttendancesRef {
+  ...
+  (dc: DataConnect, vars: ListServiceAttendancesVariables): QueryRef<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+}
+export const listServiceAttendancesRef: ListServiceAttendancesRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the listServiceAttendancesRef:
+```typescript
+const name = listServiceAttendancesRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `ListServiceAttendances` query requires an argument of type `ListServiceAttendancesVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface ListServiceAttendancesVariables {
+  orgId: UUIDString;
+  serviceId: UUIDString;
+}
+```
+### Return Type
+Recall that executing the `ListServiceAttendances` query returns a `QueryPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `ListServiceAttendancesData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface ListServiceAttendancesData {
+  attendances: ({
+    memberId: UUIDString;
+  })[];
+}
+```
+### Using `ListServiceAttendances`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, listServiceAttendances, ListServiceAttendancesVariables } from '@dataconnect/generated';
+
+// The `ListServiceAttendances` query requires an argument of type `ListServiceAttendancesVariables`:
+const listServiceAttendancesVars: ListServiceAttendancesVariables = {
+  orgId: ..., 
+  serviceId: ..., 
+};
+
+// Call the `listServiceAttendances()` function to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await listServiceAttendances(listServiceAttendancesVars);
+// Variables can be defined inline as well.
+const { data } = await listServiceAttendances({ orgId: ..., serviceId: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await listServiceAttendances(dataConnect, listServiceAttendancesVars);
+
+console.log(data.attendances);
+
+// Or, you can use the `Promise` API.
+listServiceAttendances(listServiceAttendancesVars).then((response) => {
+  const data = response.data;
+  console.log(data.attendances);
+});
+```
+
+### Using `ListServiceAttendances`'s `QueryRef` function
+
+```typescript
+import { getDataConnect, executeQuery } from 'firebase/data-connect';
+import { connectorConfig, listServiceAttendancesRef, ListServiceAttendancesVariables } from '@dataconnect/generated';
+
+// The `ListServiceAttendances` query requires an argument of type `ListServiceAttendancesVariables`:
+const listServiceAttendancesVars: ListServiceAttendancesVariables = {
+  orgId: ..., 
+  serviceId: ..., 
+};
+
+// Call the `listServiceAttendancesRef()` function to get a reference to the query.
+const ref = listServiceAttendancesRef(listServiceAttendancesVars);
+// Variables can be defined inline as well.
+const ref = listServiceAttendancesRef({ orgId: ..., serviceId: ..., });
+
+// You can also pass in a `DataConnect` instance to the `QueryRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = listServiceAttendancesRef(dataConnect, listServiceAttendancesVars);
+
+// Call `executeQuery()` on the reference to execute the query.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeQuery(ref);
+
+console.log(data.attendances);
+
+// Or, you can use the `Promise` API.
+executeQuery(ref).then((response) => {
+  const data = response.data;
+  console.log(data.attendances);
 });
 ```
 
@@ -1038,6 +1155,247 @@ console.log(data.member_delete);
 executeMutation(ref).then((response) => {
   const data = response.data;
   console.log(data.member_delete);
+});
+```
+
+## CreateService
+You can execute the `CreateService` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+createService(vars: CreateServiceVariables): MutationPromise<CreateServiceData, CreateServiceVariables>;
+
+interface CreateServiceRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateServiceVariables): MutationRef<CreateServiceData, CreateServiceVariables>;
+}
+export const createServiceRef: CreateServiceRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+createService(dc: DataConnect, vars: CreateServiceVariables): MutationPromise<CreateServiceData, CreateServiceVariables>;
+
+interface CreateServiceRef {
+  ...
+  (dc: DataConnect, vars: CreateServiceVariables): MutationRef<CreateServiceData, CreateServiceVariables>;
+}
+export const createServiceRef: CreateServiceRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the createServiceRef:
+```typescript
+const name = createServiceRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `CreateService` mutation requires an argument of type `CreateServiceVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface CreateServiceVariables {
+  serviceId: UUIDString;
+  orgId: UUIDString;
+  date: TimestampString;
+  type: string;
+}
+```
+### Return Type
+Recall that executing the `CreateService` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `CreateServiceData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface CreateServiceData {
+  service_upsert: Service_Key;
+}
+```
+### Using `CreateService`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, createService, CreateServiceVariables } from '@dataconnect/generated';
+
+// The `CreateService` mutation requires an argument of type `CreateServiceVariables`:
+const createServiceVars: CreateServiceVariables = {
+  serviceId: ..., 
+  orgId: ..., 
+  date: ..., 
+  type: ..., 
+};
+
+// Call the `createService()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await createService(createServiceVars);
+// Variables can be defined inline as well.
+const { data } = await createService({ serviceId: ..., orgId: ..., date: ..., type: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await createService(dataConnect, createServiceVars);
+
+console.log(data.service_upsert);
+
+// Or, you can use the `Promise` API.
+createService(createServiceVars).then((response) => {
+  const data = response.data;
+  console.log(data.service_upsert);
+});
+```
+
+### Using `CreateService`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, createServiceRef, CreateServiceVariables } from '@dataconnect/generated';
+
+// The `CreateService` mutation requires an argument of type `CreateServiceVariables`:
+const createServiceVars: CreateServiceVariables = {
+  serviceId: ..., 
+  orgId: ..., 
+  date: ..., 
+  type: ..., 
+};
+
+// Call the `createServiceRef()` function to get a reference to the mutation.
+const ref = createServiceRef(createServiceVars);
+// Variables can be defined inline as well.
+const ref = createServiceRef({ serviceId: ..., orgId: ..., date: ..., type: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = createServiceRef(dataConnect, createServiceVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.service_upsert);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.service_upsert);
+});
+```
+
+## RecordServiceAttendance
+You can execute the `RecordServiceAttendance` mutation using the following action shortcut function, or by calling `executeMutation()` after calling the following `MutationRef` function, both of which are defined in [dataconnect-generated/index.d.ts](./index.d.ts):
+```typescript
+recordServiceAttendance(vars: RecordServiceAttendanceVariables): MutationPromise<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+
+interface RecordServiceAttendanceRef {
+  ...
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: RecordServiceAttendanceVariables): MutationRef<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+}
+export const recordServiceAttendanceRef: RecordServiceAttendanceRef;
+```
+You can also pass in a `DataConnect` instance to the action shortcut function or `MutationRef` function.
+```typescript
+recordServiceAttendance(dc: DataConnect, vars: RecordServiceAttendanceVariables): MutationPromise<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+
+interface RecordServiceAttendanceRef {
+  ...
+  (dc: DataConnect, vars: RecordServiceAttendanceVariables): MutationRef<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+}
+export const recordServiceAttendanceRef: RecordServiceAttendanceRef;
+```
+
+If you need the name of the operation without creating a ref, you can retrieve the operation name by calling the `operationName` property on the recordServiceAttendanceRef:
+```typescript
+const name = recordServiceAttendanceRef.operationName;
+console.log(name);
+```
+
+### Variables
+The `RecordServiceAttendance` mutation requires an argument of type `RecordServiceAttendanceVariables`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+
+```typescript
+export interface RecordServiceAttendanceVariables {
+  orgId: UUIDString;
+  memberId: UUIDString;
+  serviceId: UUIDString;
+  timestamp: TimestampString;
+}
+```
+### Return Type
+Recall that executing the `RecordServiceAttendance` mutation returns a `MutationPromise` that resolves to an object with a `data` property.
+
+The `data` property is an object of type `RecordServiceAttendanceData`, which is defined in [dataconnect-generated/index.d.ts](./index.d.ts). It has the following fields:
+```typescript
+export interface RecordServiceAttendanceData {
+  attendance_insert: Attendance_Key;
+  member_update?: Member_Key | null;
+}
+```
+### Using `RecordServiceAttendance`'s action shortcut function
+
+```typescript
+import { getDataConnect } from 'firebase/data-connect';
+import { connectorConfig, recordServiceAttendance, RecordServiceAttendanceVariables } from '@dataconnect/generated';
+
+// The `RecordServiceAttendance` mutation requires an argument of type `RecordServiceAttendanceVariables`:
+const recordServiceAttendanceVars: RecordServiceAttendanceVariables = {
+  orgId: ..., 
+  memberId: ..., 
+  serviceId: ..., 
+  timestamp: ..., 
+};
+
+// Call the `recordServiceAttendance()` function to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await recordServiceAttendance(recordServiceAttendanceVars);
+// Variables can be defined inline as well.
+const { data } = await recordServiceAttendance({ orgId: ..., memberId: ..., serviceId: ..., timestamp: ..., });
+
+// You can also pass in a `DataConnect` instance to the action shortcut function.
+const dataConnect = getDataConnect(connectorConfig);
+const { data } = await recordServiceAttendance(dataConnect, recordServiceAttendanceVars);
+
+console.log(data.attendance_insert);
+console.log(data.member_update);
+
+// Or, you can use the `Promise` API.
+recordServiceAttendance(recordServiceAttendanceVars).then((response) => {
+  const data = response.data;
+  console.log(data.attendance_insert);
+  console.log(data.member_update);
+});
+```
+
+### Using `RecordServiceAttendance`'s `MutationRef` function
+
+```typescript
+import { getDataConnect, executeMutation } from 'firebase/data-connect';
+import { connectorConfig, recordServiceAttendanceRef, RecordServiceAttendanceVariables } from '@dataconnect/generated';
+
+// The `RecordServiceAttendance` mutation requires an argument of type `RecordServiceAttendanceVariables`:
+const recordServiceAttendanceVars: RecordServiceAttendanceVariables = {
+  orgId: ..., 
+  memberId: ..., 
+  serviceId: ..., 
+  timestamp: ..., 
+};
+
+// Call the `recordServiceAttendanceRef()` function to get a reference to the mutation.
+const ref = recordServiceAttendanceRef(recordServiceAttendanceVars);
+// Variables can be defined inline as well.
+const ref = recordServiceAttendanceRef({ orgId: ..., memberId: ..., serviceId: ..., timestamp: ..., });
+
+// You can also pass in a `DataConnect` instance to the `MutationRef` function.
+const dataConnect = getDataConnect(connectorConfig);
+const ref = recordServiceAttendanceRef(dataConnect, recordServiceAttendanceVars);
+
+// Call `executeMutation()` on the reference to execute the mutation.
+// You can use the `await` keyword to wait for the promise to resolve.
+const { data } = await executeMutation(ref);
+
+console.log(data.attendance_insert);
+console.log(data.member_update);
+
+// Or, you can use the `Promise` API.
+executeMutation(ref).then((response) => {
+  const data = response.data;
+  console.log(data.attendance_insert);
+  console.log(data.member_update);
 });
 ```
 

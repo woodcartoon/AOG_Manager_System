@@ -111,3 +111,55 @@ mutation DeleteMember($id: UUID!, $orgId: UUID!) @auth(level: USER) @transaction
   }
   member_delete(id: $id)
 }
+
+mutation CreateService($serviceId: UUID!, $orgId: UUID!, $date: Timestamp!, $type: String!) @auth(level: USER) @transaction {
+  query @redact {
+    userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+      @check(expr: "this != null", message: "You do not have access to this organization.") {
+      role @check(expr: "this == 'ADMIN' || this == 'TEAM_LEAD'", message: "You do not have permission to submit services.")
+    }
+  }
+  service_upsert(data: {
+    id: $serviceId
+    orgId: $orgId
+    date: $date
+    type: $type
+    isActive: false
+  })
+}
+
+mutation RecordServiceAttendance(
+  $orgId: UUID!
+  $memberId: UUID!
+  $serviceId: UUID!
+  $timestamp: Timestamp!
+) @auth(level: USER) @transaction {
+  query @redact {
+    userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+      @check(expr: "this != null", message: "You do not have access to this organization.") {
+      role @check(expr: "this == 'ADMIN' || this == 'TEAM_LEAD'", message: "You do not have permission to submit attendance.")
+    }
+    member(first: { where: { id: { eq: $memberId }, orgId: { eq: $orgId } } })
+      @check(expr: "this != null", message: "Member not found in this organization.") {
+      id
+    }
+    service(first: { where: { id: { eq: $serviceId }, orgId: { eq: $orgId } } })
+      @check(expr: "this != null", message: "Service not found in this organization.") {
+      id
+    }
+    attendance(key: { memberId: $memberId, serviceId: $serviceId })
+      @check(expr: "this == null", message: "This member is already recorded for this service.") {
+      memberId
+    }
+  }
+  attendance_insert(data: {
+    orgId: $orgId
+    memberId: $memberId
+    serviceId: $serviceId
+    timestamp: $timestamp
+  })
+  member_update(id: $memberId, data: {
+    servicesAttendedCount_update: { inc: 1 }
+    lastAttendedDate: $timestamp
+  })
+}

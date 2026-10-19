@@ -7,10 +7,13 @@ import {
 } from "firebase/auth";
 import {
     createMember,
+    createService,
     deleteMember,
     getMyOrganizations,
     listMembers,
+    listServiceAttendances,
     listServingTeams,
+    recordServiceAttendance,
     updateMember
 } from "@dataconnect/generated";
 
@@ -63,13 +66,15 @@ export async function getOrganizations() {
     return result.data.userOrganizations;
 }
 
-export async function getServingTeams(orgId) {
-    const result = await listServingTeams({ orgId });
+export async function getServingTeams(orgId, fetchLatest = false) {
+    const options = fetchLatest ? { fetchPolicy: "SERVER_ONLY" } : undefined;
+    const result = await listServingTeams({ orgId }, options);
     return result.data.servingTeams;
 }
 
-export async function getMembers(orgId) {
-    const result = await listMembers({ orgId });
+export async function getMembers(orgId, fetchLatest = false) {
+    const options = fetchLatest ? { fetchPolicy: "SERVER_ONLY" } : undefined;
+    const result = await listMembers({ orgId }, options);
     return result.data.members;
 }
 
@@ -83,4 +88,20 @@ export async function saveMember(values) {
 
 export async function removeMember(values) {
     return deleteMember(values);
+}
+
+export async function createServiceRecord(values) {
+    return createService(values);
+}
+
+export async function recordAttendance(values) {
+    return recordServiceAttendance(values);
+}
+
+export async function getServiceAttendance(orgId, serviceId) {
+    const result = await listServiceAttendances(
+        { orgId, serviceId },
+        { fetchPolicy: "SERVER_ONLY" }
+    );
+    return result.data.attendances;
 }

@@ -41,6 +41,17 @@ export interface CreateMemberVariables {
   active: boolean;
 }
 
+export interface CreateServiceData {
+  service_upsert: Service_Key;
+}
+
+export interface CreateServiceVariables {
+  serviceId: UUIDString;
+  orgId: UUIDString;
+  date: TimestampString;
+  type: string;
+}
+
 export interface DeleteMemberData {
   member_delete?: Member_Key | null;
 }
@@ -107,6 +118,17 @@ export interface ListMembersVariables {
   orgId: UUIDString;
 }
 
+export interface ListServiceAttendancesData {
+  attendances: ({
+    memberId: UUIDString;
+  })[];
+}
+
+export interface ListServiceAttendancesVariables {
+  orgId: UUIDString;
+  serviceId: UUIDString;
+}
+
 export interface ListServingTeamsData {
   servingTeams: ({
     id: UUIDString;
@@ -126,6 +148,18 @@ export interface Member_Key {
 export interface Organization_Key {
   id: UUIDString;
   __typename?: 'Organization_Key';
+}
+
+export interface RecordServiceAttendanceData {
+  attendance_insert: Attendance_Key;
+  member_update?: Member_Key | null;
+}
+
+export interface RecordServiceAttendanceVariables {
+  orgId: UUIDString;
+  memberId: UUIDString;
+  serviceId: UUIDString;
+  timestamp: TimestampString;
 }
 
 export interface Service_Key {
@@ -181,6 +215,16 @@ export function deleteMember(dc: DataConnect, vars: DeleteMemberVariables, optio
 /** Generated Node Admin SDK operation action function for the 'DeleteMember' Mutation. Allow users to pass in custom DataConnect instances. */
 export function deleteMember(vars: DeleteMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<DeleteMemberData>>;
 
+/** Generated Node Admin SDK operation action function for the 'CreateService' Mutation. Allow users to execute without passing in DataConnect. */
+export function createService(dc: DataConnect, vars: CreateServiceVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateServiceData>>;
+/** Generated Node Admin SDK operation action function for the 'CreateService' Mutation. Allow users to pass in custom DataConnect instances. */
+export function createService(vars: CreateServiceVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<CreateServiceData>>;
+
+/** Generated Node Admin SDK operation action function for the 'RecordServiceAttendance' Mutation. Allow users to execute without passing in DataConnect. */
+export function recordServiceAttendance(dc: DataConnect, vars: RecordServiceAttendanceVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<RecordServiceAttendanceData>>;
+/** Generated Node Admin SDK operation action function for the 'RecordServiceAttendance' Mutation. Allow users to pass in custom DataConnect instances. */
+export function recordServiceAttendance(vars: RecordServiceAttendanceVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<RecordServiceAttendanceData>>;
+
 /** Generated Node Admin SDK operation action function for the 'GetMyOrganizations' Query. Allow users to execute without passing in DataConnect. */
 export function getMyOrganizations(dc: DataConnect, options?: OperationOptions): Promise<ExecuteOperationResponse<GetMyOrganizationsData>>;
 /** Generated Node Admin SDK operation action function for the 'GetMyOrganizations' Query. Allow users to pass in custom DataConnect instances. */
@@ -200,4 +244,9 @@ export function listMembers(vars: ListMembersVariables, options?: OperationOptio
 export function getMember(dc: DataConnect, vars: GetMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetMemberData>>;
 /** Generated Node Admin SDK operation action function for the 'GetMember' Query. Allow users to pass in custom DataConnect instances. */
 export function getMember(vars: GetMemberVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<GetMemberData>>;
+
+/** Generated Node Admin SDK operation action function for the 'ListServiceAttendances' Query. Allow users to execute without passing in DataConnect. */
+export function listServiceAttendances(dc: DataConnect, vars: ListServiceAttendancesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListServiceAttendancesData>>;
+/** Generated Node Admin SDK operation action function for the 'ListServiceAttendances' Query. Allow users to pass in custom DataConnect instances. */
+export function listServiceAttendances(vars: ListServiceAttendancesVariables, options?: OperationOptions): Promise<ExecuteOperationResponse<ListServiceAttendancesData>>;
 

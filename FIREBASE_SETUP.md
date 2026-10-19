@@ -58,6 +58,12 @@ and delete member operations are authorized by the user's organization role
 (`ADMIN` or `TEAM_LEAD` can write). Accounts can belong to more than one
 organization; the selector appears when an account has multiple memberships.
 
+To record attendance, select **Submit today's service**, enter the service name
+and date, select the members who attended, and submit. Each member's attendance
+record and attendance total are updated together. If a network interruption
+prevents some records from saving, keep the form open and retry the unsaved
+attendance.
+
 After changing the schema or connector operations, validate and redeploy:
 
 ```powershell

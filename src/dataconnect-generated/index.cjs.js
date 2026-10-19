@@ -63,6 +63,34 @@ exports.deleteMember = function deleteMember(dcOrVars, vars) {
 }
 ;
 
+const createServiceRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'CreateService', inputVars);
+}
+createServiceRef.operationName = 'CreateService';
+exports.createServiceRef = createServiceRef;
+
+exports.createService = function createService(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(createServiceRef(dcInstance, inputVars));
+}
+;
+
+const recordServiceAttendanceRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return mutationRef(dcInstance, 'RecordServiceAttendance', inputVars);
+}
+recordServiceAttendanceRef.operationName = 'RecordServiceAttendance';
+exports.recordServiceAttendanceRef = recordServiceAttendanceRef;
+
+exports.recordServiceAttendance = function recordServiceAttendance(dcOrVars, vars) {
+  const { dc: dcInstance, vars: inputVars } = validateArgs(connectorConfig, dcOrVars, vars, true);
+  return executeMutation(recordServiceAttendanceRef(dcInstance, inputVars));
+}
+;
+
 const getMyOrganizationsRef = (dc) => {
   const { dc: dcInstance} = validateArgs(connectorConfig, dc, undefined);
   dcInstance._useGeneratedSdk();
@@ -120,5 +148,20 @@ exports.getMember = function getMember(dcOrVars, varsOrOptions, options) {
   
   const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
   return executeQuery(getMemberRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
+}
+;
+
+const listServiceAttendancesRef = (dcOrVars, vars) => {
+  const { dc: dcInstance, vars: inputVars} = validateArgs(connectorConfig, dcOrVars, vars, true);
+  dcInstance._useGeneratedSdk();
+  return queryRef(dcInstance, 'ListServiceAttendances', inputVars);
+}
+listServiceAttendancesRef.operationName = 'ListServiceAttendances';
+exports.listServiceAttendancesRef = listServiceAttendancesRef;
+
+exports.listServiceAttendances = function listServiceAttendances(dcOrVars, varsOrOptions, options) {
+  
+  const { dc: dcInstance, vars: inputVars, options: inputOpts } = validateArgsWithOptions(connectorConfig, dcOrVars, varsOrOptions, options, true, true);
+  return executeQuery(listServiceAttendancesRef(dcInstance, inputVars), inputOpts && { fetchPolicy: inputOpts.fetchPolicy });
 }
 ;

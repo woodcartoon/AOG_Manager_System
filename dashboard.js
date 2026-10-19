@@ -11,10 +11,17 @@
     var orgId = null;
     var canManageMembers = false;
     var memberships = [];
+    var refreshStatusTimer = null;
+    var pendingServiceSubmission = null;
+    var serviceSubmissionInProgress = false;
 
     function roleLabel(id) {
         var r = ROLES.filter(function (r) { return r.id === id; })[0];
         return r ? r.label : "Unassigned team";
+    }
+
+    function createServiceId() {
+        return window.crypto.randomUUID();
     }
 
     function roleColorVar(id) {
@@ -38,6 +45,8 @@
     var el = {
         search: document.getElementById("searchInput"),
         addBtn: document.getElementById("addMemberBtn"),
+        refreshBtn: document.getElementById("refreshBtn"),
+        submitServiceBtn: document.getElementById("submitServiceBtn"),
         organizationSelect: document.getElementById("organizationSelect"),
         status: document.getElementById("cloudStatus"),
         teamFilters: document.getElementById("teamFilters"),
@@ -47,7 +56,15 @@
         statTotal: document.getElementById("statTotal"),
         statActive: document.getElementById("statActive"),
         statCheckedIn: document.getElementById("statCheckedIn"),
-        newServiceBtn: document.getElementById("newServiceBtn"),
+        serviceOverlay: document.getElementById("serviceOverlay"),
+        serviceDialogClose: document.getElementById("serviceDialogClose"),
+        serviceForm: document.getElementById("serviceForm"),
+        serviceType: document.getElementById("serviceType"),
+        serviceDate: document.getElementById("serviceDate"),
+        serviceMembers: document.getElementById("serviceAttendanceMembers"),
+        serviceError: document.getElementById("serviceError"),
+        serviceCancelBtn: document.getElementById("serviceCancelBtn"),
+        serviceSubmitBtn: document.getElementById("serviceSubmitBtn"),
 
         overlay: document.getElementById("drawerOverlay"),
         drawer: document.getElementById("memberDrawer"),
@@ -65,7 +82,6 @@
         address: document.getElementById("fieldAddress"),
         joinDate: document.getElementById("fieldJoinDate"),
         active: document.getElementById("fieldActive"),
-        checkedIn: document.getElementById("fieldCheckedIn"),
         attendanceBlock: document.getElementById("attendanceBlock"),
         attendanceCount: document.getElementById("fieldAttendanceCount"),
         lastAttended: document.getElementById("fieldLastAttended"),
@@ -285,11 +301,6 @@
         renderMembers();
     });
 
-    /* ---- Start next service: clears check-in marks for the next gathering --- */
-
-    el.newServiceBtn.hidden = true;
-    el.checkedIn.closest(".toggle").hidden = true;
-
     /* ---- Drawer: find / open / close ----------------------------------------- */
 
     function findMember(id) {
@@ -362,6 +373,15 @@
     }
 
     el.addBtn.addEventListener("click", function () { openDrawer(null, "add"); });
+    el.submitServiceBtn.addEventListener("click", openServiceDialog);
+    el.serviceDialogClose.addEventListener("click", closeServiceDialog);
+    el.serviceCancelBtn.addEventListener("click", closeServiceDialog);
+    el.serviceOverlay.addEventListener("click", function (e) {
+        if (e.target === el.serviceOverlay) closeServiceDialog();
+    });
+    document.addEventListener("keydown", function (e) {
+        if (e.key === "Escape" && !el.serviceOverlay.hidden) closeServiceDialog();
+    });
     el.drawerClose.addEventListener("click", closeDrawer);
     el.overlay.addEventListener("click", function (e) { if (e.target === el.overlay) closeDrawer(); });
     document.addEventListener("keydown", function (e) {
@@ -449,8 +469,8 @@
         }
     });
 
-    async function refreshMembers() {
-        var records = await window.AogFirebase.getMembers(orgId);
+    async function refreshMembers(fetchLatest) {
+        var records = await window.AogFirebase.getMembers(orgId, fetchLatest);
         members = records.map(function (record) {
             return {
                 id: record.id,
@@ -467,6 +487,232 @@
             };
         });
     }
+
+    function todayInputValue() {
+        var today = new Date();
+        return today.getFullYear() + "-" +
+            String(today.getMonth() + 1).padStart(2, "0") + "-" +
+            String(today.getDate()).padStart(2, "0");
+    }
+
+    function renderServiceMemberChoices(selectedIds) {
+        var selected = new Set(selectedIds || []);
+        el.serviceMembers.replaceChildren();
+
+        if (!members.length) {
+            var empty = document.createElement("p");
+            empty.className = "service-attendance__hint";
+            empty.textContent = "Add members before submitting attendance.";
+            el.serviceMembers.appendChild(empty);
+            return;
+        }
+
+        members.slice().sort(function (a, b) {
+            return (a.lastName + a.firstName).localeCompare(b.lastName + b.firstName);
+        }).forEach(function (member) {
+            var label = document.createElement("label");
+            label.className = "service-attendance__member";
+
+            var checkbox = document.createElement("input");
+            checkbox.type = "checkbox";
+            checkbox.value = member.id;
+            checkbox.dataset.memberId = member.id;
+            checkbox.checked = selected.has(member.id);
+            checkbox.disabled = !!pendingServiceSubmission;
+
+            var name = document.createElement("span");
+            name.textContent = member.firstName + " " + member.lastName;
+
+            label.append(checkbox, name);
+            el.serviceMembers.appendChild(label);
+        });
+    }
+
+    function openServiceDialog() {
+        if (!canManageMembers || serviceSubmissionInProgress) return;
+        if (!pendingServiceSubmission) {
+            el.serviceType.value = "Sunday AM";
+            el.serviceDate.value = todayInputValue();
+            renderServiceMemberChoices([]);
+            el.serviceType.disabled = false;
+            el.serviceDate.disabled = false;
+            el.serviceSubmitBtn.textContent = "Submit service";
+            el.serviceError.hidden = true;
+        } else {
+            renderServiceMemberChoices(pendingServiceSubmission.memberIds);
+            el.serviceType.value = pendingServiceSubmission.type;
+            el.serviceDate.value = pendingServiceSubmission.date;
+            el.serviceType.disabled = true;
+            el.serviceDate.disabled = true;
+            el.serviceSubmitBtn.textContent = pendingServiceSubmission.serviceCreated
+                ? "Retry attendance"
+                : "Retry service save";
+        }
+
+        el.organizationSelect.disabled = true;
+        el.serviceDialogClose.disabled = !!pendingServiceSubmission;
+        el.serviceCancelBtn.disabled = !!pendingServiceSubmission;
+        el.serviceOverlay.hidden = false;
+        document.body.style.overflow = "hidden";
+        window.setTimeout(function () { el.serviceType.focus(); }, 0);
+    }
+
+    function closeServiceDialog() {
+        if (pendingServiceSubmission || serviceSubmissionInProgress) return;
+        el.serviceOverlay.hidden = true;
+        document.body.style.overflow = "";
+        el.organizationSelect.disabled = false;
+    }
+
+    function finishServiceDialog() {
+        el.serviceOverlay.hidden = true;
+        document.body.style.overflow = "";
+        el.organizationSelect.disabled = false;
+    }
+
+    function getServiceError(error) {
+        if (error && typeof error.message === "string" && error.message.trim()) {
+            return "Firebase could not submit the service: " + error.message;
+        }
+        return "Firebase could not submit the service. Check your connection and permissions.";
+    }
+
+    el.serviceForm.addEventListener("submit", async function (e) {
+        e.preventDefault();
+        if (serviceSubmissionInProgress) return;
+
+        var selectedMemberIds = Array.prototype.map.call(
+            el.serviceMembers.querySelectorAll("input[data-member-id]:checked"),
+            function (checkbox) { return checkbox.dataset.memberId; }
+        );
+        var serviceType = el.serviceType.value.trim();
+        var serviceDate = el.serviceDate.value;
+
+        if (!pendingServiceSubmission && !serviceType) {
+            el.serviceError.textContent = "Enter a name for this service.";
+            el.serviceError.hidden = false;
+            el.serviceType.focus();
+            return;
+        }
+        if (!pendingServiceSubmission && !serviceDate) {
+            el.serviceError.textContent = "Choose the date of the service.";
+            el.serviceError.hidden = false;
+            el.serviceDate.focus();
+            return;
+        }
+        if (!pendingServiceSubmission && selectedMemberIds.length === 0) {
+            el.serviceError.textContent = "Select at least one member who attended.";
+            el.serviceError.hidden = false;
+            return;
+        }
+
+        serviceSubmissionInProgress = true;
+        el.serviceSubmitBtn.disabled = true;
+        el.serviceSubmitBtn.textContent = pendingServiceSubmission
+            ? (pendingServiceSubmission.serviceCreated ? "Retrying attendance…" : "Retrying service save…")
+            : "Saving service…";
+        el.serviceError.hidden = true;
+
+        try {
+            if (!pendingServiceSubmission) {
+                var timestamp = new Date(serviceDate + "T12:00:00").toISOString();
+                pendingServiceSubmission = {
+                    orgId: orgId,
+                    serviceId: createServiceId(),
+                    timestamp: timestamp,
+                    date: serviceDate,
+                    type: serviceType,
+                    memberIds: selectedMemberIds,
+                    serviceCreated: false
+                };
+                el.serviceType.disabled = true;
+                el.serviceDate.disabled = true;
+                renderServiceMemberChoices(selectedMemberIds);
+                el.serviceDialogClose.disabled = true;
+                el.serviceCancelBtn.disabled = true;
+            }
+
+            if (!pendingServiceSubmission.serviceCreated) {
+                var serviceResult = await window.AogFirebase.createServiceRecord({
+                    serviceId: pendingServiceSubmission.serviceId,
+                    orgId: pendingServiceSubmission.orgId,
+                    date: pendingServiceSubmission.timestamp,
+                    type: pendingServiceSubmission.type
+                });
+                pendingServiceSubmission.serviceId = serviceResult.data.service_upsert.id;
+                pendingServiceSubmission.serviceCreated = true;
+                el.serviceSubmitBtn.textContent = "Recording attendance…";
+            }
+
+            var submission = pendingServiceSubmission;
+            var existingAttendance = await window.AogFirebase.getServiceAttendance(
+                submission.orgId,
+                submission.serviceId
+            );
+            var alreadyRecorded = new Set(existingAttendance.map(function (item) {
+                return item.memberId;
+            }));
+            var missingMemberIds = submission.memberIds.filter(function (id) {
+                return !alreadyRecorded.has(id);
+            });
+            var results = await Promise.allSettled(missingMemberIds.map(function (memberId) {
+                return window.AogFirebase.recordAttendance({
+                    orgId: submission.orgId,
+                    memberId: memberId,
+                    serviceId: submission.serviceId,
+                    timestamp: submission.timestamp
+                });
+            }));
+            var failures = results.reduce(function (failed, result, index) {
+                if (result.status === "rejected") {
+                    failed.push({ memberId: missingMemberIds[index], error: result.reason });
+                }
+                return failed;
+            }, []);
+
+            await refreshMembers(true);
+            render();
+
+            if (failures.length) {
+                var failedNames = failures.map(function (failure) {
+                    var member = findMember(failure.memberId);
+                    var name = member ? member.firstName + " " + member.lastName : "a selected member";
+                    var reason = failure.error && failure.error.message;
+                    return reason ? name + " (" + reason + ")" : name;
+                });
+                el.serviceError.textContent =
+                    "The service was saved, but attendance could not be recorded for " +
+                    failedNames.join(", ") + ". Keep this window open and choose Retry attendance.";
+                el.serviceError.hidden = false;
+                el.serviceSubmitBtn.textContent = "Retry attendance";
+                return;
+            }
+
+            pendingServiceSubmission = null;
+            finishServiceDialog();
+            el.status.hidden = false;
+            el.status.textContent = "Service submitted. Attendance was recorded for " +
+                submission.memberIds.length + " member(s).";
+            window.clearTimeout(refreshStatusTimer);
+            refreshStatusTimer = window.setTimeout(function () {
+                el.status.hidden = true;
+            }, 4000);
+        } catch (error) {
+            el.serviceError.textContent = pendingServiceSubmission && pendingServiceSubmission.serviceCreated
+                ? "The service has been saved. Attendance is not fully confirmed yet. " +
+                  getServiceError(error) + " Keep this window open and choose Retry attendance."
+                : getServiceError(error);
+            el.serviceError.hidden = false;
+            if (pendingServiceSubmission) {
+                el.serviceSubmitBtn.textContent = pendingServiceSubmission.serviceCreated
+                    ? "Retry attendance"
+                    : "Retry service save";
+            }
+        } finally {
+            serviceSubmissionInProgress = false;
+            el.serviceSubmitBtn.disabled = false;
+        }
+    });
 
     function getOperationError(error) {
         return error && error.message
@@ -502,6 +748,7 @@
             el.organizationSelect.addEventListener("change", function () {
                 loadOrganization(el.organizationSelect.value);
             });
+            el.refreshBtn.addEventListener("click", refreshOrganizationData);
             await loadOrganization(organizations[0].org.id);
         } catch (error) {
             el.status.textContent = getOperationError(error);
@@ -510,6 +757,7 @@
     }
 
     async function loadOrganization(selectedOrgId) {
+        window.clearTimeout(refreshStatusTimer);
         orgId = selectedOrgId;
         state.team = "all";
         state.search = "";
@@ -519,7 +767,10 @@
         })[0];
         canManageMembers = !!membership && (membership.role === "ADMIN" || membership.role === "TEAM_LEAD");
         el.addBtn.hidden = !canManageMembers;
+        el.submitServiceBtn.hidden = !canManageMembers;
         el.addBtn.disabled = true;
+        el.submitServiceBtn.disabled = true;
+        el.refreshBtn.disabled = true;
         el.status.hidden = false;
         el.status.textContent = "Loading organization data from Firebase…";
         try {
@@ -528,6 +779,8 @@
             await refreshMembers();
             el.status.hidden = true;
             el.addBtn.disabled = !teams.length;
+            el.submitServiceBtn.disabled = false;
+            el.refreshBtn.disabled = false;
             if (!teams.length && canManageMembers) {
                 el.status.hidden = false;
                 el.status.textContent = "This organization has no serving teams yet. Add a serving team before creating members.";
@@ -538,6 +791,48 @@
             render();
         } catch (error) {
             el.status.textContent = getOperationError(error);
+            el.refreshBtn.disabled = false;
+            el.submitServiceBtn.disabled = true;
+        }
+    }
+
+    async function refreshOrganizationData() {
+        if (!orgId || el.refreshBtn.disabled) return;
+
+        var selectedOrgId = orgId;
+        window.clearTimeout(refreshStatusTimer);
+        el.refreshBtn.disabled = true;
+        el.refreshBtn.classList.add("is-loading");
+        el.refreshBtn.setAttribute("aria-busy", "true");
+        el.organizationSelect.disabled = true;
+        el.status.hidden = false;
+        el.status.textContent = "Fetching the latest changes from Firebase…";
+
+        try {
+            var teams = await window.AogFirebase.getServingTeams(selectedOrgId, true);
+            if (state.team !== "all" && !teams.some(function (team) { return team.id === state.team; })) {
+                state.team = "all";
+            }
+            setServingTeams(teams);
+            await refreshMembers(true);
+            el.empty.textContent = members.length
+                ? "No one matches that search or team. Try a different name, or clear the filter."
+                : "No members are in this cloud database yet. Use Add member to create the first record.";
+            el.addBtn.disabled = !teams.length;
+            render();
+            el.status.textContent = "Latest database changes loaded.";
+            refreshStatusTimer = window.setTimeout(function () {
+                el.status.hidden = true;
+            }, 3000);
+        } catch (error) {
+            el.status.textContent = error && error.message
+                ? "Firebase could not refresh the data: " + error.message
+                : "Firebase could not refresh the data. Check your connection and permissions.";
+        } finally {
+            el.refreshBtn.disabled = false;
+            el.refreshBtn.classList.remove("is-loading");
+            el.refreshBtn.removeAttribute("aria-busy");
+            el.organizationSelect.disabled = false;
         }
     }
 

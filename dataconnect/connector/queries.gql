@@ -67,3 +67,14 @@ query GetMember($id: UUID!, $orgId: UUID!) @auth(level: USER) {
     lastAttendedDate
   }
 }
+
+query ListServiceAttendances($orgId: UUID!, $serviceId: UUID!) @auth(level: USER) {
+  userOrganization(key: { uid_expr: "auth.uid", orgId: $orgId })
+    @check(expr: "this != null", message: "You do not have access to this organization.")
+    @redact {
+    orgId
+  }
+  attendances(where: { orgId: { eq: $orgId }, serviceId: { eq: $serviceId } }) {
+    memberId
+  }
+}

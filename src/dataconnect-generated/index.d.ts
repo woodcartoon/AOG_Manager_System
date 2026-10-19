@@ -43,6 +43,17 @@ export interface CreateMemberVariables {
   active: boolean;
 }
 
+export interface CreateServiceData {
+  service_upsert: Service_Key;
+}
+
+export interface CreateServiceVariables {
+  serviceId: UUIDString;
+  orgId: UUIDString;
+  date: TimestampString;
+  type: string;
+}
+
 export interface DeleteMemberData {
   member_delete?: Member_Key | null;
 }
@@ -109,6 +120,17 @@ export interface ListMembersVariables {
   orgId: UUIDString;
 }
 
+export interface ListServiceAttendancesData {
+  attendances: ({
+    memberId: UUIDString;
+  })[];
+}
+
+export interface ListServiceAttendancesVariables {
+  orgId: UUIDString;
+  serviceId: UUIDString;
+}
+
 export interface ListServingTeamsData {
   servingTeams: ({
     id: UUIDString;
@@ -128,6 +150,18 @@ export interface Member_Key {
 export interface Organization_Key {
   id: UUIDString;
   __typename?: 'Organization_Key';
+}
+
+export interface RecordServiceAttendanceData {
+  attendance_insert: Attendance_Key;
+  member_update?: Member_Key | null;
+}
+
+export interface RecordServiceAttendanceVariables {
+  orgId: UUIDString;
+  memberId: UUIDString;
+  serviceId: UUIDString;
+  timestamp: TimestampString;
 }
 
 export interface Service_Key {
@@ -211,6 +245,30 @@ export const deleteMemberRef: DeleteMemberRef;
 export function deleteMember(vars: DeleteMemberVariables): MutationPromise<DeleteMemberData, DeleteMemberVariables>;
 export function deleteMember(dc: DataConnect, vars: DeleteMemberVariables): MutationPromise<DeleteMemberData, DeleteMemberVariables>;
 
+interface CreateServiceRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: CreateServiceVariables): MutationRef<CreateServiceData, CreateServiceVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: CreateServiceVariables): MutationRef<CreateServiceData, CreateServiceVariables>;
+  operationName: string;
+}
+export const createServiceRef: CreateServiceRef;
+
+export function createService(vars: CreateServiceVariables): MutationPromise<CreateServiceData, CreateServiceVariables>;
+export function createService(dc: DataConnect, vars: CreateServiceVariables): MutationPromise<CreateServiceData, CreateServiceVariables>;
+
+interface RecordServiceAttendanceRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: RecordServiceAttendanceVariables): MutationRef<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: RecordServiceAttendanceVariables): MutationRef<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+  operationName: string;
+}
+export const recordServiceAttendanceRef: RecordServiceAttendanceRef;
+
+export function recordServiceAttendance(vars: RecordServiceAttendanceVariables): MutationPromise<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+export function recordServiceAttendance(dc: DataConnect, vars: RecordServiceAttendanceVariables): MutationPromise<RecordServiceAttendanceData, RecordServiceAttendanceVariables>;
+
 interface GetMyOrganizationsRef {
   /* Allow users to create refs without passing in DataConnect */
   (): QueryRef<GetMyOrganizationsData, undefined>;
@@ -258,4 +316,16 @@ export const getMemberRef: GetMemberRef;
 
 export function getMember(vars: GetMemberVariables, options?: ExecuteQueryOptions): QueryPromise<GetMemberData, GetMemberVariables>;
 export function getMember(dc: DataConnect, vars: GetMemberVariables, options?: ExecuteQueryOptions): QueryPromise<GetMemberData, GetMemberVariables>;
+
+interface ListServiceAttendancesRef {
+  /* Allow users to create refs without passing in DataConnect */
+  (vars: ListServiceAttendancesVariables): QueryRef<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+  /* Allow users to pass in custom DataConnect instances */
+  (dc: DataConnect, vars: ListServiceAttendancesVariables): QueryRef<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+  operationName: string;
+}
+export const listServiceAttendancesRef: ListServiceAttendancesRef;
+
+export function listServiceAttendances(vars: ListServiceAttendancesVariables, options?: ExecuteQueryOptions): QueryPromise<ListServiceAttendancesData, ListServiceAttendancesVariables>;
+export function listServiceAttendances(dc: DataConnect, vars: ListServiceAttendancesVariables, options?: ExecuteQueryOptions): QueryPromise<ListServiceAttendancesData, ListServiceAttendancesVariables>;
 
